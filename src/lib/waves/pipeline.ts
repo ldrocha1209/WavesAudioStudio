@@ -4,7 +4,7 @@ export interface PipelineOptions {
   sourceKind: SourceKind;
   stem: StemId;
   /** Force a mocked failure at a given stage. */
-  failAt?: StageId;
+  failAt?: StageId | undefined;
 }
 
 export interface PipelineHandle {
@@ -65,7 +65,7 @@ export function runPipeline(
     if (cancelled) return;
     const dt = Math.min(120, now - last);
     last = now;
-    const stage = stages[index];
+    const stage = stages[index]!;
     elapsedInStage += dt;
     elapsedTotal += dt;
 
@@ -86,7 +86,7 @@ export function runPipeline(
         handlers.onDone();
         return;
       }
-      stages[index].status = "active";
+      stages[index]!.status = "active";
     }
 
     handlers.onProgress(stages.map((s) => ({ ...s })), Math.min(1, elapsedTotal / total));

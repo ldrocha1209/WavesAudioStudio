@@ -4,13 +4,13 @@ import { cn } from "@/lib/utils";
 interface WaveformProps {
   peaks: number[];
   /** 0..1 playhead position */
-  progress?: number;
+  progress?: number | undefined;
   /** 0..1 processed / rendered portion, drawn as illumination */
-  scan?: number;
-  onSeek?: (position: number) => void;
-  height?: number;
-  className?: string;
-  subtle?: boolean;
+  scan?: number | undefined;
+  onSeek?: ((position: number) => void) | undefined;
+  height?: number | undefined;
+  className?: string | undefined;
+  subtle?: boolean | undefined;
 }
 
 export function Waveform({

@@ -51,7 +51,7 @@ export function SettingsPanel({
               <GhostButton
                 onClick={() => {
                   const next =
-                    MOCK_FOLDERS[(MOCK_FOLDERS.indexOf(settings.outputFolder) + 1) % MOCK_FOLDERS.length];
+                    MOCK_FOLDERS[(MOCK_FOLDERS.indexOf(settings.outputFolder) + 1) % MOCK_FOLDERS.length]!;
                   onChange({ ...settings, outputFolder: next });
                 }}
               >

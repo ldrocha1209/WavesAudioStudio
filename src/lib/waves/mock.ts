@@ -57,7 +57,7 @@ export const STEM_OPTIONS: { id: StemId; label: string; hint: string }[] = [
 
 export const FORMATS: AudioFormat[] = ["WAV", "MP3", "FLAC"];
 
-export function qualitiesFor(format: AudioFormat): Quality[] {
+export function qualitiesFor(format: AudioFormat): [Quality, ...Quality[]] {
   return format === "MP3" ? ["320 kbps", "256 kbps", "192 kbps"] : ["Highest"];
 }
 

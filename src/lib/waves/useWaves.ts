@@ -138,7 +138,7 @@ export function useWaves() {
     setOverall(0);
     setPhase("processing");
     pipeline.current = runPipeline(
-      { sourceKind: track.sourceKind, stem, failAt },
+      { sourceKind: track.sourceKind, stem, ...(failAt ? { failAt } : {}) },
       {
         onProgress: (next, total) => {
           setStages(next);

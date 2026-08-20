@@ -5,7 +5,7 @@ import { Label, Meta } from "./primitives";
 import { TransportButton } from "./Transport";
 import { Waveform } from "./Waveform";
 
-export function TrackPanel({ track, scan }: { track: Track; scan?: number }) {
+export function TrackPanel({ track, scan }: { track: Track; scan?: number | undefined }) {
   const player = usePlayback(track.duration);
 
   return (

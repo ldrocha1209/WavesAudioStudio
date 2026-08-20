@@ -17,7 +17,7 @@ export function ExportPanel({
   onFormat: (format: AudioFormat) => void;
   onQuality: (quality: Quality) => void;
   onLocation: (path: string) => void;
-  disabled?: boolean;
+  disabled?: boolean | undefined;
 }) {
   const [browsing, setBrowsing] = useState(false);
 

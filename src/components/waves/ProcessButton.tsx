@@ -6,8 +6,8 @@ export function ProcessButton({
   processing,
 }: {
   onClick: () => void;
-  disabled?: boolean;
-  processing?: boolean;
+  disabled?: boolean | undefined;
+  processing?: boolean | undefined;
 }) {
   return (
     <button

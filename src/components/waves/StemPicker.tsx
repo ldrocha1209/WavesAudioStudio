@@ -10,7 +10,7 @@ export function StemPicker({
 }: {
   value: StemId;
   onChange: (stem: StemId) => void;
-  disabled?: boolean;
+  disabled?: boolean | undefined;
 }) {
   return (
     <section>

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-export function Label({ children, className }: { children: ReactNode; className?: string }) {
+export function Label({ children, className }: { children: ReactNode; className?: string | undefined }) {
   return (
     <span
       className={cn(
@@ -14,7 +14,7 @@ export function Label({ children, className }: { children: ReactNode; className?
   );
 }
 
-export function Meta({ children, className }: { children: ReactNode; className?: string }) {
+export function Meta({ children, className }: { children: ReactNode; className?: string | undefined }) {
   return <span className={cn("font-mono text-xs text-[var(--grey)]", className)}>{children}</span>;
 }
 
@@ -22,8 +22,8 @@ interface SegmentedProps<T extends string> {
   options: readonly T[];
   value: T;
   onChange: (value: T) => void;
-  disabled?: boolean;
-  className?: string;
+  disabled?: boolean | undefined;
+  className?: string | undefined;
 }
 
 export function Segmented<T extends string>({
@@ -67,8 +67,8 @@ export function GhostButton({
 }: {
   children: ReactNode;
   onClick?: () => void;
-  className?: string;
-  disabled?: boolean;
+  className?: string | undefined;
+  disabled?: boolean | undefined;
 }) {
   return (
     <button
