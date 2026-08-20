@@ -17,6 +17,7 @@ import type {
   Phase,
   Quality,
   Stage,
+  StageId,
   StemId,
   Track,
   WavesError,
