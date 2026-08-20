@@ -35,9 +35,9 @@ function OutputRow({
           player.toggle();
         }}
       />
-      <div className="w-40 shrink-0">
+      <div className="w-64 shrink-0">
         <p className="text-sm text-[var(--platinum)]">{output.label}</p>
-        <p className="mt-0.5 truncate font-mono text-[11px] text-[var(--grey)]">{output.size}</p>
+        <p className="mt-0.5 truncate font-mono text-[11px] text-[var(--grey)]">{output.filename} · {output.size}</p>
       </div>
       <Waveform peaks={output.peaks} progress={playing ? player.progress : 0} height={38} subtle className="flex-1" />
     </div>

@@ -73,15 +73,15 @@ const EXT: Record<AudioFormat, string> = { WAV: "wav", MP3: "mp3", FLAC: "flac" 
 export function buildOutputs(track: Track, stem: StemId, format: AudioFormat): OutputFile[] {
   const base = track.title.replace(/[^\w\s-]/g, "").trim();
   const ext = EXT[format];
-  const size = (label: string, factor: number) => {
+  const size = (factor: number) => {
     const mb = (track.duration / 60) * (format === "WAV" ? 10.6 : format === "FLAC" ? 6.2 : 2.4) * factor;
-    return `${mb.toFixed(1)} MB — ${label}`;
+    return `${mb.toFixed(1)} MB`;
   };
   const make = (id: string, label: string, seed: number, factor = 1): OutputFile => ({
     id,
     label,
     filename: `${base} — ${label}.${ext}`,
-    size: size(format, factor),
+    size: size(factor),
     peaks: generatePeaks(seed),
   });
 
