@@ -127,9 +127,11 @@ export function useWaves() {
   const process = useCallback(() => {
     if (!track) return;
     setError(null);
-    const failAt =
-      exportSettings.format === "WAV" && stem === "all" && exportSettings.location.startsWith("/Volumes")
-        ? "export"
+    // Mocked failure triggers so every error state is reachable in the prototype.
+    const failAt: StageId | undefined = exportSettings.location.startsWith("/Volumes")
+      ? "export"
+      : exportSettings.location.includes("Desktop/Stems") && stem !== "original"
+        ? "separate"
         : undefined;
     setStages(buildStages({ sourceKind: track.sourceKind, stem }));
     setOverall(0);
