@@ -7,6 +7,9 @@ export function usePlayback(duration: number, path?: string) {
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [status, setStatus] = useState<"loading" | "ready" | "simulated" | "unavailable">(
+    native ? "loading" : "simulated",
+  );
   const raf = useRef(0);
   const last = useRef(0);
 
@@ -15,17 +18,25 @@ export function usePlayback(duration: number, path?: string) {
     setTime(0);
     if (!path || !native) {
       setAudio(null);
+      setStatus(native ? "unavailable" : "simulated");
       return;
     }
+    setStatus("loading");
     let element: HTMLAudioElement | undefined;
     void import("@tauri-apps/api/core").then(({ convertFileSrc }) => {
       element = new Audio(convertFileSrc(path));
-      element.preload = "metadata";
+      element.preload = "auto";
+      element.addEventListener("canplay", () => setStatus("ready"));
+      element.addEventListener("error", () => {
+        setStatus("unavailable");
+        setPlaying(false);
+      });
       element.addEventListener("timeupdate", () => setTime(element?.currentTime ?? 0));
       element.addEventListener("play", () => setPlaying(true));
       element.addEventListener("pause", () => setPlaying(false));
       element.addEventListener("ended", () => setPlaying(false));
       setAudio(element);
+      element.load();
     });
     return () => {
       if (element) {
@@ -63,7 +74,10 @@ export function usePlayback(duration: number, path?: string) {
         if (activeAudio && activeAudio !== audio) activeAudio.pause();
         activeAudio = audio;
         if (audio.currentTime >= audio.duration) audio.currentTime = 0;
-        void audio.play();
+        void audio.play().catch(() => {
+          setStatus("unavailable");
+          setPlaying(false);
+        });
       } else {
         audio.pause();
       }
@@ -80,6 +94,7 @@ export function usePlayback(duration: number, path?: string) {
 
   return {
     playing,
+    status,
     time,
     toggle,
     seek,

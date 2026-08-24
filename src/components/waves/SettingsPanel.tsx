@@ -114,7 +114,7 @@ export function SettingsPanel({
 
         <div className={cn("mt-10 rounded-md bg-[var(--surface-2)]/60 px-5 py-5")}>
           <Label>About</Label>
-          <p className="mt-4 text-sm text-[var(--platinum)]/85">Waves 1.0.1 — local build</p>
+          <p className="mt-4 text-sm text-[var(--platinum)]/85">Waves 1.0.2 — local build</p>
           <p className="mt-1.5 font-mono text-[11px] leading-relaxed text-[var(--grey)]">
             Downloads, conversions, and stem separation run locally. YouTube access requires an
             internet connection.

@@ -8,7 +8,7 @@ import uuid
 from pathlib import Path
 from typing import Any, Callable
 
-from .downloader import cached_preview, download_audio
+from .downloader import cached_source, download_audio
 from .errors import WavesEngineError
 from .media import resolve_tool
 from .separation import separate_audio
@@ -106,7 +106,7 @@ def run_pipeline(context: dict[str, Any], workspace: Path, cancelled: Callable[[
     requested_stems = [name for name in selection if name != "original"]
     source_kind = track.get("sourceKind")
     if source_kind == "youtube":
-        source = cached_preview(str(track.get("id") or ""))
+        source = cached_source(str(track.get("id") or ""))
         download_weight = 0.0 if source else (0.2 if requested_stems else 1 / 3)
         if source is None:
             source = download_audio(str(track.get("sourceUrl") or track.get("source", "").removeprefix("YouTube · ")), workspace, cancelled, lambda value: emit("download", value, value * download_weight))

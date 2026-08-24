@@ -32,7 +32,11 @@ export function TrackPanel({ track, scan }: { track: Track; scan?: number | unde
       </div>
 
       <div className="mt-9 flex items-center gap-6">
-        <TransportButton playing={player.playing} onToggle={player.toggle} />
+        <TransportButton
+          playing={player.playing}
+          onToggle={player.toggle}
+          disabled={player.status === "unavailable"}
+        />
         <Waveform
           peaks={track.peaks}
           progress={player.progress}
@@ -46,6 +50,16 @@ export function TrackPanel({ track, scan }: { track: Track; scan?: number | unde
         <Meta>{formatTime(player.time)}</Meta>
         <Meta>{formatTime(track.duration)}</Meta>
       </div>
+      {track.sourceKind === "youtube" && player.status === "loading" && (
+        <p className="mt-3 pl-[68px] font-mono text-[10px] tracking-wide text-[var(--grey)] uppercase">
+          Preparing preview…
+        </p>
+      )}
+      {track.sourceKind === "youtube" && player.status === "unavailable" && (
+        <p className="mt-3 pl-[68px] font-mono text-[10px] tracking-wide text-[var(--grey)] uppercase">
+          Pre-processing playback is not available for this YouTube link
+        </p>
+      )}
     </section>
   );
 }

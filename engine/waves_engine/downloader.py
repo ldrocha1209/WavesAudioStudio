@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import os
+import subprocess
 import tempfile
+import uuid
 from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import parse_qs, urlparse
@@ -11,6 +13,22 @@ from .errors import WavesEngineError
 from .media import resolve_tool
 
 YOUTUBE_HOSTS = {"youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "music.youtube.com"}
+
+
+class _ProtocolSafeLogger:
+    """Keep yt-dlp output away from the engine's stdout JSONL protocol."""
+
+    def debug(self, _message: str) -> None:
+        pass
+
+    def info(self, _message: str) -> None:
+        pass
+
+    def warning(self, _message: str) -> None:
+        pass
+
+    def error(self, _message: str) -> None:
+        pass
 
 
 def validate_youtube_url(raw_url: str) -> str:
@@ -33,6 +51,8 @@ def _options() -> dict[str, Any]:
     return {
         "quiet": True,
         "no_warnings": True,
+        "noprogress": True,
+        "logger": _ProtocolSafeLogger(),
         "noplaylist": True,
         "extract_flat": False,
         "socket_timeout": 30,
@@ -107,19 +127,42 @@ def safe_thumbnail_id(value: str) -> str:
     return "".join(character for character in value if character.isalnum() or character in "_-")[:64] or "youtube"
 
 
-def cached_preview(video_id: str) -> Path | None:
-    directory = Path(tempfile.gettempdir(), "waves-audio-previews", safe_thumbnail_id(video_id))
+def _preview_directory(video_id: str) -> Path:
+    return Path(tempfile.gettempdir(), "waves-audio-previews", safe_thumbnail_id(video_id))
+
+
+def cached_source(video_id: str) -> Path | None:
+    directory = _preview_directory(video_id)
     candidates = [path for path in directory.glob("source.*") if path.suffix not in {".part", ".ytdl"} and path.is_file()]
     return candidates[0] if len(candidates) == 1 else None
+
+
+def cached_preview(video_id: str) -> Path | None:
+    preview = _preview_directory(video_id) / "preview.mp3"
+    return preview if preview.is_file() else None
 
 
 def prepare_preview(raw_url: str, video_id: str) -> Path:
     existing = cached_preview(video_id)
     if existing:
         return existing
-    directory = Path(tempfile.gettempdir(), "waves-audio-previews", safe_thumbnail_id(video_id))
+    directory = _preview_directory(video_id)
     directory.mkdir(mode=0o700, parents=True, exist_ok=True)
-    return download_audio(raw_url, directory, lambda: False, lambda _value: None)
+    source = cached_source(video_id) or download_audio(raw_url, directory, lambda: False, lambda _value: None)
+    preview = directory / "preview.mp3"
+    staging = directory / f".preview-{uuid.uuid4().hex}.mp3"
+    result = subprocess.run(
+        [resolve_tool("ffmpeg"), "-nostdin", "-v", "error", "-i", os.fspath(source), "-map", "0:a:0", "-vn", "-c:a", "libmp3lame", "-b:a", "192k", os.fspath(staging)],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=600,
+    )
+    if result.returncode != 0 or not staging.is_file():
+        staging.unlink(missing_ok=True)
+        raise WavesEngineError("PREVIEW_FAILED", result.stderr)
+    os.replace(staging, preview)
+    return preview
 
 
 def download_audio(

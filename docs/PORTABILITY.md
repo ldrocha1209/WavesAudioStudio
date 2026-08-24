@@ -1,6 +1,6 @@
 # Portability and GitHub Distribution
 
-Waves v1.0.1 targets the owner's Intel Mac running macOS 14 or newer. The architecture keeps React, Rust host integration, and Python processing separated, but no Windows or Apple Silicon release claim is made.
+Waves v1.0.2 targets the owner's Intel Mac running macOS 14 or newer. The architecture keeps React, Rust host integration, and Python processing separated, but no Windows or Apple Silicon release claim is made.
 
 ## GitHub
 

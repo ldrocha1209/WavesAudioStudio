@@ -1,6 +1,6 @@
 # Waves Phased Implementation Plan
 
-Status: local v1.0.1 implementation complete on 2026-08-24
+Status: local v1.0.2 implementation complete on 2026-08-24
 Priority order: local usability, reliability, maintainability, separation of concerns, performance, approved UI, reproducible installation, optional portability
 
 ## Execution status
@@ -13,7 +13,7 @@ The original public-distribution criteria were reconciled with the owner's local
 | 1–3   | Complete                  | [Phases 1–3 results](./PHASE_1_3_RESULTS.md)                                    |
 | 4–5   | Complete                  | [Phases 4–5 results](./PHASE_4_5_RESULTS.md)                                    |
 | 6–9   | Complete                  | [Phases 6–9 results](./PHASE_6_9_RESULTS.md)                                    |
-| 10–12 | Complete for local v1.0.1 | [v1 release results](./RELEASE_1_0_RESULTS.md)                                  |
+| 10–12 | Complete for local v1.0.2 | [v1 release results](./RELEASE_1_0_RESULTS.md)                                  |
 
 ## Scope decision — 2026-08-23
 

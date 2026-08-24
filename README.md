@@ -15,7 +15,7 @@ The source is maintained on GitHub for backup, review, and presentation. Waves i
 
 ## Supported build
 
-Waves v1.0.1 is validated on the owner's Intel Mac with macOS 14 or newer. The local artifact is ad-hoc signed and not notarized. It is not a universal or Apple Silicon release.
+Waves v1.0.2 is validated on the owner's Intel Mac with macOS 14 or newer. The local artifact is ad-hoc signed and not notarized. It is not a universal or Apple Silicon release.
 
 Prerequisites for a source build:
 

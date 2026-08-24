@@ -1,6 +1,6 @@
 {
   "name": "waves-audio-studio",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -22,6 +22,7 @@
     "smoke:youtube": "PYTHONPATH=engine engine/.venv/bin/python scripts/smoke_youtube.py",
     "smoke:separation": "PYTHONPATH=engine engine/.venv/bin/python scripts/smoke_separation.py",
     "smoke:frozen": "engine/.venv/bin/python scripts/smoke_frozen_engine.py",
+    "smoke:frozen-youtube": "engine/.venv/bin/python scripts/smoke_frozen_youtube_preview.py",
     "release:local": "npm run check && npm run engine:freeze && npm run tauri:build",
     "lint": "eslint .",
     "format": "prettier --write ."
