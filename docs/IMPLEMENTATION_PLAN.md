@@ -1,7 +1,19 @@
 # Waves Phased Implementation Plan
 
-Status: active implementation; Phase 0 complete and later phases authorized sequentially  
+Status: local v1.0 implementation complete on 2026-08-23
 Priority order: local usability, reliability, maintainability, separation of concerns, performance, approved UI, reproducible installation, optional portability
+
+## Execution status
+
+The original public-distribution criteria were reconciled with the owner's local-only scope decision below. Every phase is complete for that scope; hardware, notarization, public binary distribution, and portfolio work are recorded as explicit non-goals rather than hidden incomplete gates.
+
+| Phase | Result                  | Evidence                                                                        |
+| ----- | ----------------------- | ------------------------------------------------------------------------------- |
+| 0     | Complete                | [Phase 0 results](./PHASE_0_RESULTS.md), [ADR-001](./ADR-001-DESKTOP-ENGINE.md) |
+| 1–3   | Complete                | [Phases 1–3 results](./PHASE_1_3_RESULTS.md)                                    |
+| 4–5   | Complete                | [Phases 4–5 results](./PHASE_4_5_RESULTS.md)                                    |
+| 6–9   | Complete                | [Phases 6–9 results](./PHASE_6_9_RESULTS.md)                                    |
+| 10–12 | Complete for local v1.0 | [v1.0 release results](./RELEASE_1_0_RESULTS.md)                                |
 
 ## Scope decision — 2026-08-23
 
@@ -660,20 +672,20 @@ Leave the codebase understandable and portable without building a Windows releas
 
 The following requirements are cross-phase and must all be represented before macOS release:
 
-| Area | Required proof |
-|---|---|
-| URL behavior | Single-video only; playlist expansion cannot occur; invalid/unavailable/network/extractor cases normalized |
-| Local sources | All approved formats probed; corrupted/unreadable/missing/permission cases handled; source hash unchanged |
-| FFmpeg | Argument arrays, bundled location, progress, cancellation, codec/bitrate outputs, no shell, license manifest |
-| Naming | Unicode/reserved/long/malicious names; atomic collision handling; no silent overwrite |
-| Temporary data | Success/failure/cancel/shutdown/crash cleanup; symlink/traversal-safe deletion; stale-job recovery |
-| Demucs | Model verification, source mapping, device selection, warm/cold lifecycle, worker crash/OOM, quality regression |
-| Instrumental | Four-stem sum validated against accepted reference behavior and listening tests |
-| Jobs | Legal transitions, monotonic progress, snapshot recovery, exactly one terminal event, idempotent cancel |
-| IPC | Schema/version/framing limits, malformed/late/duplicate events, engine restart, backpressure |
-| Settings | Atomic persistence, validation, migration, corrupt fallback, destination authorization |
-| Desktop | Native drop/dialog/reveal, restricted preview, no arbitrary frontend filesystem/shell capability |
-| Packaging | Clean machine, offline local workflow, nested signatures, Hardened Runtime, notarization/stapling, SBOM |
+| Area           | Required proof                                                                                                  |
+| -------------- | --------------------------------------------------------------------------------------------------------------- |
+| URL behavior   | Single-video only; playlist expansion cannot occur; invalid/unavailable/network/extractor cases normalized      |
+| Local sources  | All approved formats probed; corrupted/unreadable/missing/permission cases handled; source hash unchanged       |
+| FFmpeg         | Argument arrays, bundled location, progress, cancellation, codec/bitrate outputs, no shell, license manifest    |
+| Naming         | Unicode/reserved/long/malicious names; atomic collision handling; no silent overwrite                           |
+| Temporary data | Success/failure/cancel/shutdown/crash cleanup; symlink/traversal-safe deletion; stale-job recovery              |
+| Demucs         | Model verification, source mapping, device selection, warm/cold lifecycle, worker crash/OOM, quality regression |
+| Instrumental   | Four-stem sum validated against accepted reference behavior and listening tests                                 |
+| Jobs           | Legal transitions, monotonic progress, snapshot recovery, exactly one terminal event, idempotent cancel         |
+| IPC            | Schema/version/framing limits, malformed/late/duplicate events, engine restart, backpressure                    |
+| Settings       | Atomic persistence, validation, migration, corrupt fallback, destination authorization                          |
+| Desktop        | Native drop/dialog/reveal, restricted preview, no arbitrary frontend filesystem/shell capability                |
+| Packaging      | Clean machine, offline local workflow, nested signatures, Hardened Runtime, notarization/stapling, SBOM         |
 
 ## Explicitly deferred beyond v1
 

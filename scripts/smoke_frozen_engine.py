@@ -21,6 +21,8 @@ def main() -> None:
         ready = json.loads(process.stdout.readline())
         if ready.get("type") != "engine_ready":
             raise RuntimeError(f"Engine did not become ready: {ready}")
+        if ready.get("engineVersion") != "1.0.0":
+            raise RuntimeError(f"Unexpected frozen engine version: {ready.get('engineVersion')}")
         request = {"protocol": 1, "type": "start_job", "requestId": "smoke-start", "payload": {"jobId": "frozen-smoke", "track": {"id": "fixture", "title": "Frozen Smoke", "artist": "Waves", "duration": 3, "source": "fixture", "sourceKind": "file", "sourcePath": str(source), "peaks": [0.5]}, "stem": "instrumental", "export": {"format": "WAV", "quality": "Highest", "location": destination}, "devicePolicy": "CPU only"}}
         process.stdin.write(json.dumps(request, separators=(",", ":")) + "\n")
         process.stdin.flush()

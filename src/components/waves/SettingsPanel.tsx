@@ -19,12 +19,14 @@ export function SettingsPanel({
   onChange,
   onClose,
   engineProofStatus,
+  native,
 }: {
   open: boolean;
   settings: AppSettings;
   onChange: (settings: AppSettings) => void;
   onClose: () => void;
   engineProofStatus: EngineProofStatus;
+  native: boolean;
 }) {
   if (!open) return null;
 
@@ -52,6 +54,8 @@ export function SettingsPanel({
             <div className="flex items-center gap-3">
               <span className="font-mono text-xs text-[var(--grey)]">{settings.outputFolder}</span>
               <GhostButton
+                disabled={native}
+                title={native ? "Choose a destination from the export screen" : undefined}
                 onClick={() => {
                   const next =
                     MOCK_FOLDERS[
@@ -60,7 +64,7 @@ export function SettingsPanel({
                   onChange({ ...settings, outputFolder: next });
                 }}
               >
-                Change
+                {native ? "Set per export" : "Change"}
               </GhostButton>
             </div>
           </Row>
@@ -105,13 +109,13 @@ export function SettingsPanel({
 
         <div className={cn("mt-10 rounded-md bg-[var(--surface-2)]/60 px-5 py-5")}>
           <Label>About</Label>
-          <p className="mt-4 text-sm text-[var(--platinum)]/85">Waves 0.1.0 — prototype build</p>
+          <p className="mt-4 text-sm text-[var(--platinum)]/85">Waves 1.0.0 — local build</p>
           <p className="mt-1.5 font-mono text-[11px] leading-relaxed text-[var(--grey)]">
-            Local processing engine not yet connected. All downloads, conversions and separations
-            are simulated.
+            Downloads, conversions, and stem separation run locally. YouTube access requires an
+            internet connection.
           </p>
           <p className="mt-3 font-mono text-[10px] tracking-wide text-[var(--grey)] uppercase">
-            Desktop engine proof · {engineProofStatus}
+            Desktop engine · {engineProofStatus}
           </p>
         </div>
       </aside>

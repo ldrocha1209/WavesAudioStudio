@@ -277,14 +277,14 @@ FFmpeg should be updated only through a tested, signed Waves release initially. 
 
 ## 8. Direct reuse decision table
 
-| Area | Keep directly | Reimplement cleanly | Discard |
-|---|---|---|---|
-| Approved Waves UI | Waves visual components, CSS, composition, interaction direction | Native adapters, real state/events, accessibility around dialogs/drop | Mock timers, fake files/folders, fake playback |
-| Waves domain model | Names and broad UI concepts in `types.ts` | Versioned backend protocol and richer error/job schemas | Prototype-only assumptions such as string paths from the DOM |
-| Downloader | No whole production function | Python API integration, metadata, progress, cancellation, errors, secure output | PySide, UI-thread work, connectivity probe, PATH FFmpeg, forced 192 MP3 |
-| Stem engine | No whole production function | Model/source mapping, channel normalization, split inference, device/resource management | FastAPI, accounts, DB, uploads, eager import-time loading, in-memory HTTP result |
-| Packaging | Existing icon may be design reference only | Tauri application bundle, frozen sidecars, nested signing/notarization | Briefcase configuration and hosted Render assumptions |
-| Tests | None of the old assertions provide coverage | Full unit/contract/integration/package test suites | Live-download-dependent default tests |
+| Area               | Keep directly                                                    | Reimplement cleanly                                                                      | Discard                                                                          |
+| ------------------ | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Approved Waves UI  | Waves visual components, CSS, composition, interaction direction | Native adapters, real state/events, accessibility around dialogs/drop                    | Mock timers, fake files/folders, fake playback                                   |
+| Waves domain model | Names and broad UI concepts in `types.ts`                        | Versioned backend protocol and richer error/job schemas                                  | Prototype-only assumptions such as string paths from the DOM                     |
+| Downloader         | No whole production function                                     | Python API integration, metadata, progress, cancellation, errors, secure output          | PySide, UI-thread work, connectivity probe, PATH FFmpeg, forced 192 MP3          |
+| Stem engine        | No whole production function                                     | Model/source mapping, channel normalization, split inference, device/resource management | FastAPI, accounts, DB, uploads, eager import-time loading, in-memory HTTP result |
+| Packaging          | Existing icon may be design reference only                       | Tauri application bundle, frozen sidecars, nested signing/notarization                   | Briefcase configuration and hosted Render assumptions                            |
+| Tests              | None of the old assertions provide coverage                      | Full unit/contract/integration/package test suites                                       | Live-download-dependent default tests                                            |
 
 ## 9. Primary references used for volatile decisions
 
@@ -296,4 +296,3 @@ FFmpeg should be updated only through a tested, signed Waves release initially. 
 - [PyTorch MPS backend](https://docs.pytorch.org/docs/stable/notes/mps.html)
 - [FFmpeg legal and license guidance](https://ffmpeg.org/legal.html)
 - [Apple notarization requirements](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)
-

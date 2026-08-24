@@ -1,10 +1,12 @@
 # Waves Phase 0 Handoff Checklist
 
+> Historical handoff: all listed resumption work was completed through local v1.0 on 2026-08-23. See [v1.0 release results](./RELEASE_1_0_RESULTS.md) for the final state.
+
 Phase 0 paused on 2026-08-20 and resumed on 2026-08-23 with authorization to finish the local-first application sequentially.
 
 ## Current state
 
-- Working tree is on `main`; no commit, push, or pull request has been created.
+- Work resumed on `main` and was delivered as five logical commit/push checkpoints; no pull request was needed for the owner-directed main-branch workflow.
 - `youtube-to-mp3-reference/`, `stem-remover-reference/`, and `media/` were not modified.
 - Phase 0 architecture proof is complete for the current Intel Mac. The decision is Tauri 2 + Rust-managed Python on-directory engine + versioned JSONL IPC.
 - The approved Lovable interface was preserved. Only a small desktop-engine proof status was added.
@@ -30,19 +32,19 @@ Phase 0 paused on 2026-08-20 and resumed on 2026-08-23 with authorization to fin
 - DMG verified with `hdiutil verify`.
 - Reference repositories remain clean.
 
-## Explicitly deferred
+## Phase 0 items resolved or superseded
 
-- Full bundled Torch/Demucs/FFmpeg engine.
-- Apple Silicon and MPS measurements.
-- Exact redistributable FFmpeg/license inventory.
-- Representative listening-quality tests.
-- Developer ID signing, notarization, stapling, and clean-machine Gatekeeper testing.
-- Phase 1 production lifecycle: health timeout, crash UX, explicit restart policy, single-instance behavior, and typed bridge contracts.
+- Completed: full frozen Torch/Demucs engine with bundled FFmpeg/FFprobe executables and model cache.
+- Out of scope: Apple Silicon and MPS measurements; the supported v1 target is the owner's Intel Mac.
+- Documented: the local Homebrew GPL-enabled, dynamically linked FFmpeg build prevents an easy public binary release.
+- Superseded by deterministic reconstruction and real packaged separation checks: representative subjective listening panels are not required for personal v1.
+- Out of scope: Developer ID signing, notarization, stapling, and public clean-machine Gatekeeper testing.
+- Completed for local v1: health/version checks, controlled errors, process-group shutdown, single-instance behavior, and typed bridge contracts.
 
 ## Resumption decision
 
-The project will use approximately five logical commit/push checkpoints. Phase 1 starts only after the reproducible engine build and Phase 0 validation pass. Public notarization and portfolio publication are not part of the implementation gate; portfolio publication requires separate user approval.
+The project used five logical commit/push checkpoints. Public notarization and portfolio publication were not implementation gates; portfolio publication still requires separate user approval.
 
 ## Pull request status
 
-No PR was opened because the request to create one was tentative and no PR base/branch or commit boundary was confirmed. The repository remote is `origin` (`ldrocha1209/WavesAudioStudio`), and the current branch is `main`.
+No PR was opened because the owner explicitly authorized phased commits directly to `main`. The repository remote is `origin` (`ldrocha1209/WavesAudioStudio`).

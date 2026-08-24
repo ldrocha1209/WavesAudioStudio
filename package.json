@@ -1,6 +1,6 @@
 {
-  "name": "tanstack_start_ts",
-  "version": "0.9.0",
+  "name": "waves-audio-studio",
+  "version": "1.0.0",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -22,6 +22,7 @@
     "smoke:youtube": "PYTHONPATH=engine engine/.venv/bin/python scripts/smoke_youtube.py",
     "smoke:separation": "PYTHONPATH=engine engine/.venv/bin/python scripts/smoke_separation.py",
     "smoke:frozen": "engine/.venv/bin/python scripts/smoke_frozen_engine.py",
+    "release:local": "npm run check && npm run engine:freeze && npm run tauri:build",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
@@ -62,7 +63,7 @@
     "@tanstack/react-start": "1.168.32",
     "@tanstack/router-plugin": "1.168.23",
     "@tauri-apps/api": "2.11.1",
-    "@tauri-apps/plugin-dialog": "^2.4.0",
+    "@tauri-apps/plugin-dialog": "^2.7.2",
     "@tauri-apps/plugin-opener": "^2.5.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

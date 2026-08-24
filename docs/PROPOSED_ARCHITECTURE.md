@@ -113,13 +113,32 @@ Use newline-delimited UTF-8 JSON over the sidecar's standard input/output:
 Example command:
 
 ```json
-{"protocol":1,"type":"start_job","requestId":"r-17","job":{"id":"j-42","source":{"kind":"file","grantId":"g-8"},"result":"instrumental","export":{"format":"mp3","bitrateKbps":320,"destinationGrantId":"d-3"}}}
+{
+  "protocol": 1,
+  "type": "start_job",
+  "requestId": "r-17",
+  "job": {
+    "id": "j-42",
+    "source": { "kind": "file", "grantId": "g-8" },
+    "result": "instrumental",
+    "export": { "format": "mp3", "bitrateKbps": 320, "destinationGrantId": "d-3" }
+  }
+}
 ```
 
 Example event:
 
 ```json
-{"protocol":1,"type":"job_progress","jobId":"j-42","seq":19,"stage":"separating","stageProgress":0.63,"overallProgress":0.74,"message":"Separating audio"}
+{
+  "protocol": 1,
+  "type": "job_progress",
+  "jobId": "j-42",
+  "seq": 19,
+  "stage": "separating",
+  "stageProgress": 0.63,
+  "overallProgress": 0.74,
+  "message": "Separating audio"
+}
 ```
 
 JSONL is preferred to a localhost API because it has no listening port, origin/authentication problem, HTTP server lifecycle, or multipart copying. It is easier to debug and version than an ad hoc text stream. Large audio never crosses IPC; only bounded metadata and paths/grants do.

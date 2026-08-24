@@ -71,17 +71,20 @@ export function GhostButton({
   onClick,
   className,
   disabled,
+  title,
 }: {
   children: ReactNode;
   onClick?: () => void;
   className?: string | undefined;
   disabled?: boolean | undefined;
+  title?: string | undefined;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
+      title={title}
       className={cn(
         "rounded-md border border-[var(--hairline)] px-3.5 py-1.5 text-xs text-[var(--grey)]",
         "transition-all duration-200 hover:border-[var(--platinum)]/25 hover:text-[var(--platinum)]",

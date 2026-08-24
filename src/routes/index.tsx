@@ -122,6 +122,7 @@ function WavesApp() {
         onChange={waves.applySettings}
         onClose={() => setSettingsOpen(false)}
         engineProofStatus={engineProofStatus}
+        native={waves.native}
       />
     </div>
   );

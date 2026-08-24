@@ -1,6 +1,6 @@
 # Phases 6–9 Results
 
-Status: implementation complete; full package validation pending checkpoint 4  
+Status: complete; full frozen and packaged engine validation passed
 Date: 2026-08-23
 
 ## Phase 6 — Demucs separation

@@ -23,42 +23,42 @@ No reference repository or `media/` file was modified. No production audio workf
 
 ## Acceptance matrix
 
-| Proof | Result | Evidence / conclusion |
-| --- | --- | --- |
-| Approved UI in a packaged static build | Pass | `npm run build:desktop`; Tauri app launched without Nitro or an HTTP server. Only a small engine-proof status was added to About. |
-| Fixed packaged engine launch | Pass | The app host started `Contents/Resources/waves-engine-onedir/waves-engine` as its direct child. |
-| Protocol/version handshake and ordered progress | Pass | Seven engine tests cover ready/ping, malformed and oversized frames, ordered progress, and cancellation. |
-| Engine shutdown ownership | Pass | Closing the host left no `waves-engine` process. Rust marks EOF as stopped and clears the child slot so a later start is possible. |
-| Engine crash/restart user flow | Partial | Crash state and a clean subsequent start are supported by the proof boundary, but automatic recovery policy and a packaged UI-driven crash test belong in Phase 1. Jobs must never be silently retried. |
-| FFmpeg decode/export pipeline | Pass on development tool | Source Opus/WebM was decoded once to WAV, FLAC, and 320/256/192 kbps MP3. Exact redistributable FFmpeg binaries are still a distribution gate. |
-| yt-dlp metadata and single-audio download | Pass | Metadata and best-audio download succeeded for the permitted short smoke source. An older official test URL was unavailable, confirming extractor tests must not rely on a single live URL. |
-| CPU Demucs inference | Pass | Real `htdemucs` four-stem separation completed from a 3-second stereo float32 fixture. |
-| Instrumental strategy | Pass numerically | Summing drums+bass+other was bit-identical to Demucs' four-stem complement for the fixture (maximum absolute difference 0.0). Listening review remains a product-quality test with representative music. |
-| yt-dlp/FFmpeg/Demucs cancellation | Pass | All three process-group cancellation probes terminated with no surviving child process. |
-| Lazy Torch/Demucs loading | Pass at protocol level | Download/probe paths do not import Torch. Capability inspection imports it only when explicitly requested. |
-| Frozen lightweight engine | Pass | PyInstaller on-directory engine launches and works from inside the signed app without user-installed Python. |
-| Frozen full Torch/Demucs engine | Deferred | The Phase 0 app carries the lightweight supervisor, not Torch, Demucs, FFmpeg, or the model. Full native-library bundling is the first packaging spike in the Demucs phase. |
-| MPS / Apple Silicon | Deferred externally | This computer is Intel, so `mpsAvailable=false`. Validate on an arm64 Mac before advertising acceleration. |
-| Signed/notarized/stapled Gatekeeper artifact | Partial | Ad-hoc signing, hardened runtime sealing, deep strict verification, app launch, and DMG creation pass. Developer ID signing/notarization cannot be tested without Apple credentials and is not required for local development. |
-| Clean-machine install | Deferred externally | Requires a second clean Mac and the full engine artifact. |
-| Third-party distribution review | Partial | The local FFmpeg is GPL-enabled and is proof-only. Select an exact LGPL-compatible build or deliberately comply with GPL before distribution; audit model and native runtime notices with the full bundle. |
+| Proof                                           | Result                   | Evidence / conclusion                                                                                                                                                                                                          |
+| ----------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Approved UI in a packaged static build          | Pass                     | `npm run build:desktop`; Tauri app launched without Nitro or an HTTP server. Only a small engine-proof status was added to About.                                                                                              |
+| Fixed packaged engine launch                    | Pass                     | The app host started `Contents/Resources/waves-engine-onedir/waves-engine` as its direct child.                                                                                                                                |
+| Protocol/version handshake and ordered progress | Pass                     | Seven engine tests cover ready/ping, malformed and oversized frames, ordered progress, and cancellation.                                                                                                                       |
+| Engine shutdown ownership                       | Pass                     | Closing the host left no `waves-engine` process. Rust marks EOF as stopped and clears the child slot so a later start is possible.                                                                                             |
+| Engine crash/restart user flow                  | Partial                  | Crash state and a clean subsequent start are supported by the proof boundary, but automatic recovery policy and a packaged UI-driven crash test belong in Phase 1. Jobs must never be silently retried.                        |
+| FFmpeg decode/export pipeline                   | Pass on development tool | Source Opus/WebM was decoded once to WAV, FLAC, and 320/256/192 kbps MP3. Exact redistributable FFmpeg binaries are still a distribution gate.                                                                                 |
+| yt-dlp metadata and single-audio download       | Pass                     | Metadata and best-audio download succeeded for the permitted short smoke source. An older official test URL was unavailable, confirming extractor tests must not rely on a single live URL.                                    |
+| CPU Demucs inference                            | Pass                     | Real `htdemucs` four-stem separation completed from a 3-second stereo float32 fixture.                                                                                                                                         |
+| Instrumental strategy                           | Pass numerically         | Summing drums+bass+other was bit-identical to Demucs' four-stem complement for the fixture (maximum absolute difference 0.0). Listening review remains a product-quality test with representative music.                       |
+| yt-dlp/FFmpeg/Demucs cancellation               | Pass                     | All three process-group cancellation probes terminated with no surviving child process.                                                                                                                                        |
+| Lazy Torch/Demucs loading                       | Pass at protocol level   | Download/probe paths do not import Torch. Capability inspection imports it only when explicitly requested.                                                                                                                     |
+| Frozen lightweight engine                       | Pass                     | PyInstaller on-directory engine launches and works from inside the signed app without user-installed Python.                                                                                                                   |
+| Frozen full Torch/Demucs engine                 | Deferred                 | The Phase 0 app carries the lightweight supervisor, not Torch, Demucs, FFmpeg, or the model. Full native-library bundling is the first packaging spike in the Demucs phase.                                                    |
+| MPS / Apple Silicon                             | Deferred externally      | This computer is Intel, so `mpsAvailable=false`. Validate on an arm64 Mac before advertising acceleration.                                                                                                                     |
+| Signed/notarized/stapled Gatekeeper artifact    | Partial                  | Ad-hoc signing, hardened runtime sealing, deep strict verification, app launch, and DMG creation pass. Developer ID signing/notarization cannot be tested without Apple credentials and is not required for local development. |
+| Clean-machine install                           | Deferred externally      | Requires a second clean Mac and the full engine artifact.                                                                                                                                                                      |
+| Third-party distribution review                 | Partial                  | The local FFmpeg is GPL-enabled and is proof-only. Select an exact LGPL-compatible build or deliberately comply with GPL before distribution; audit model and native runtime notices with the full bundle.                     |
 
 ## Measurements
 
 Measurements are diagnostic, not final performance budgets.
 
-| Item | Measurement |
-| --- | --- |
-| Python environment | Python 3.11.13 x86_64; local venv 913 MB |
-| Core versions | Demucs 4.0.1; Torch/Torchaudio 2.2.2; yt-dlp 2026.8.19; yt-dlp-ejs 0.8.0; PyInstaller 6.16.0 |
-| `htdemucs` model | 84,141,911 bytes; SHA-256 `8726e21a993978c7ba086d3872e7608d7d5bfca646ca4aca459ffda844faa8b4` |
-| CPU separation | 3-second, 44.1 kHz stereo fixture in 37.77 seconds; maximum RSS about 1.10 GB |
-| Output stems | Four stereo 44.1 kHz `pcm_f32le` files |
-| Torch first capability load | About 60 seconds on this Intel proof environment |
-| PyInstaller one-file supervisor | 23 MB; roughly 33.74 s cold and 16.57 s warm; unsuitable |
-| PyInstaller on-directory supervisor | 47 MB directory; 13.45 s first macOS-scanned launch and 0.83 s warm |
-| Packaged proof app | About 66 MB before DMG compression |
-| DMG | 28 MB; SHA-256 `e710245dd8690d6ff458e95d7ff859c86dbf2b2cb59cf8efbd3aef85d6e69fb4`; `hdiutil verify` passed |
+| Item                                | Measurement                                                                                                |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Python environment                  | Python 3.11.13 x86_64; local venv 913 MB                                                                   |
+| Core versions                       | Demucs 4.0.1; Torch/Torchaudio 2.2.2; yt-dlp 2026.8.19; yt-dlp-ejs 0.8.0; PyInstaller 6.16.0               |
+| `htdemucs` model                    | 84,141,911 bytes; SHA-256 `8726e21a993978c7ba086d3872e7608d7d5bfca646ca4aca459ffda844faa8b4`               |
+| CPU separation                      | 3-second, 44.1 kHz stereo fixture in 37.77 seconds; maximum RSS about 1.10 GB                              |
+| Output stems                        | Four stereo 44.1 kHz `pcm_f32le` files                                                                     |
+| Torch first capability load         | About 60 seconds on this Intel proof environment                                                           |
+| PyInstaller one-file supervisor     | 23 MB; roughly 33.74 s cold and 16.57 s warm; unsuitable                                                   |
+| PyInstaller on-directory supervisor | 47 MB directory; 13.45 s first macOS-scanned launch and 0.83 s warm                                        |
+| Packaged proof app                  | About 66 MB before DMG compression                                                                         |
+| DMG                                 | 28 MB; SHA-256 `e710245dd8690d6ff458e95d7ff859c86dbf2b2cb59cf8efbd3aef85d6e69fb4`; `hdiutil verify` passed |
 
 The full Torch/Demucs artifact will be much larger than this proof. A final installed footprint in the multi-gigabyte range is plausible once Torch, native libraries, FFmpeg, JavaScript runtime support, and models are present. Size is accepted as a secondary concern, but launch time, signing integrity, RAM, and reliable updates remain hard gates.
 

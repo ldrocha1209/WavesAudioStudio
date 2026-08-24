@@ -11,7 +11,7 @@ Waves is a personal, local-first macOS desktop application. The supported develo
 - Xcode Command Line Tools
 - FFmpeg for development smoke tests
 
-The final local bundle is intended to carry its runtime dependencies. The local build copies FFmpeg, FFprobe, and Node (used by yt-dlp's JavaScript challenge support) into the engine resource tree. Development commands remain explicit so a clean checkout can be reproduced.
+The local build copies FFmpeg, FFprobe, and Node (used by yt-dlp's JavaScript challenge support) into the engine resource tree. The current Homebrew FFmpeg executables remain dynamically linked to the owner's installed Homebrew libraries, so FFmpeg must remain installed on this Mac. Development commands are explicit so a clean checkout can be reproduced.
 
 ## First setup
 
@@ -48,4 +48,4 @@ The generated `.app` and `.dmg` are local, ad-hoc-signed development artifacts. 
 
 ## GitHub distribution
 
-The repository should always contain source and reproducible build instructions, never generated virtual environments, model caches, Tauri targets, or frozen binaries. If the finished bundle is reasonably portable, an unsigned GitHub Release asset may be added as a convenience; source-based local setup remains the reliable fallback.
+The repository contains source and reproducible build instructions, never generated virtual environments, model caches, Tauri targets, or frozen binaries. No v1.0 binary release is published: the artifact is Intel-only, ad-hoc signed, 467 MB compressed, dynamically linked to Homebrew libraries, and requires a separate GPL distribution review. Source-based local setup is the reliable path.
