@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://waves.local/contracts/protocol-v1.schema.json",
+  "title": "Waves engine protocol v1 frame",
+  "type": "object",
+  "required": ["protocol", "type"],
+  "properties": {
+    "protocol": { "const": 1 },
+    "type": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "requestId": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "jobId": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "seq": { "type": "integer", "minimum": 0 }
+  },
+  "additionalProperties": true
+}

@@ -1,11 +1,35 @@
 use std::{
+    fs,
     io::{BufRead, BufReader, Write},
+    path::PathBuf,
     process::{Child, Command, Stdio},
     sync::Mutex,
     thread,
 };
 
 use tauri::{AppHandle, Emitter, Manager, State};
+
+#[derive(Clone, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct AppSettings {
+    output_folder: String,
+    default_format: String,
+    default_quality: String,
+    hardware_acceleration: String,
+    appearance: String,
+}
+
+impl Default for AppSettings {
+    fn default() -> Self {
+        Self {
+            output_folder: "~/Music/Waves".into(),
+            default_format: "WAV".into(),
+            default_quality: "Highest".into(),
+            hardware_acceleration: "Automatic".into(),
+            appearance: "Shadow".into(),
+        }
+    }
+}
 
 #[derive(Default)]
 struct EngineState {
@@ -37,17 +61,17 @@ fn start_engine_impl(app: &AppHandle) -> Result<String, String> {
         return Ok("running".to_string());
     }
 
-    let executable = std::env::current_exe()
-        .map_err(|error| format!("unable to locate desktop executable: {error}"))?;
-    let executable_dir = executable
-        .parent()
-        .ok_or_else(|| "desktop executable has no parent directory".to_string())?;
-    let packaged_engine = executable_dir.join("../Resources/waves-engine-onedir/waves-engine");
-    let legacy_sidecar = executable_dir.join("waves-engine");
+    let packaged_engine = app
+        .path()
+        .resource_dir()
+        .map_err(|error| format!("unable to locate app resources: {error}"))?
+        .join("waves-engine-onedir/waves-engine");
+    let development_engine = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../engine/dist/waves-engine-onedir/waves-engine");
     let engine = if packaged_engine.is_file() {
         packaged_engine
     } else {
-        legacy_sidecar
+        development_engine
     };
     let mut child = Command::new(&engine)
         .stdin(Stdio::piped())
@@ -111,6 +135,35 @@ fn start_engine_impl(app: &AppHandle) -> Result<String, String> {
     Ok("starting".to_string())
 }
 
+fn settings_path(app: &AppHandle) -> Result<PathBuf, String> {
+    let directory = app
+        .path()
+        .app_config_dir()
+        .map_err(|error| format!("unable to locate settings directory: {error}"))?;
+    fs::create_dir_all(&directory)
+        .map_err(|error| format!("unable to create settings directory: {error}"))?;
+    Ok(directory.join("settings.json"))
+}
+
+#[tauri::command]
+fn get_settings(app: AppHandle) -> AppSettings {
+    settings_path(&app)
+        .ok()
+        .and_then(|path| fs::read_to_string(path).ok())
+        .and_then(|value| serde_json::from_str(&value).ok())
+        .unwrap_or_default()
+}
+
+#[tauri::command]
+fn save_settings(app: AppHandle, settings: AppSettings) -> Result<(), String> {
+    let path = settings_path(&app)?;
+    let temporary = path.with_extension("json.tmp");
+    let contents = serde_json::to_vec_pretty(&settings).map_err(|error| error.to_string())?;
+    fs::write(&temporary, contents)
+        .map_err(|error| format!("unable to write settings: {error}"))?;
+    fs::rename(&temporary, &path).map_err(|error| format!("unable to publish settings: {error}"))
+}
+
 #[tauri::command]
 fn send_engine(message: String, state: State<'_, EngineState>) -> Result<(), String> {
     if message.len() > 64 * 1024 || !message.ends_with('\n') {
@@ -133,6 +186,14 @@ fn send_engine(message: String, state: State<'_, EngineState>) -> Result<(), Str
 
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _, _| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }))
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .manage(EngineState::default())
         .setup(|app| {
             if let Err(error) = start_engine_impl(app.handle()) {
@@ -155,7 +216,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             engine_status,
             start_engine,
-            send_engine
+            send_engine,
+            get_settings,
+            save_settings
         ])
         .run(tauri::generate_context!())
         .expect("error while running the Waves Phase 0 desktop proof");

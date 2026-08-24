@@ -12,6 +12,9 @@ from pathlib import Path
 from typing import Any
 
 from . import ENGINE_VERSION
+from .errors import WavesEngineError
+from .jobs import JobManager
+from .media import inspect_file
 from .protocol import ProtocolError, Request, parse_request, write_message
 
 
@@ -20,6 +23,7 @@ class Engine:
         self._write_lock = threading.Lock()
         self._jobs_lock = threading.Lock()
         self._jobs: dict[str, threading.Event] = {}
+        self.job_manager = JobManager(self.emit)
 
     def emit(self, message: dict[str, Any]) -> None:
         with self._write_lock:
@@ -38,6 +42,10 @@ class Engine:
             "run_demo": self._run_demo,
             "cancel": self._cancel,
             "probe_media": self._probe_media,
+            "inspect_file": self._inspect_file,
+            "inspect_url": self._inspect_url,
+            "start_job": self._start_job,
+            "job_snapshot": self._job_snapshot,
             "capabilities": self._capabilities,
             "shutdown": self._shutdown,
         }
@@ -117,6 +125,14 @@ class Engine:
 
     def _cancel(self, request: Request) -> None:
         job_id = request.payload.get("jobId")
+        try:
+            if isinstance(job_id, str) and self.job_manager.snapshot()["active"] is not None:
+                self.job_manager.cancel(job_id)
+                self.emit({"type": "cancel_accepted", "requestId": request.request_id, "jobId": job_id})
+                return
+        except WavesEngineError as exc:
+            self.error(request.request_id, exc.code, exc.detail)
+            return
         with self._jobs_lock:
             token = self._jobs.get(job_id) if isinstance(job_id, str) else None
         if token is None:
@@ -124,6 +140,43 @@ class Engine:
             return
         token.set()
         self.emit({"type": "cancel_accepted", "requestId": request.request_id, "jobId": job_id})
+
+    def _inspect_file(self, request: Request) -> None:
+        raw_path = request.payload.get("path")
+        if not isinstance(raw_path, str) or not raw_path:
+            self.error(request.request_id, "INVALID_PATH")
+            return
+        try:
+            track = inspect_file(raw_path)
+        except WavesEngineError as exc:
+            self.error(request.request_id, exc.code, exc.detail)
+            return
+        self.emit({"type": "source_inspected", "requestId": request.request_id, "track": track})
+
+    def _inspect_url(self, request: Request) -> None:
+        self.error(request.request_id, "URL_PIPELINE_NOT_READY")
+
+    def _start_job(self, request: Request) -> None:
+        job_id = request.payload.get("jobId")
+        track = request.payload.get("track")
+        stem = request.payload.get("stem")
+        if not isinstance(job_id, str) or not isinstance(track, dict) or not isinstance(stem, str):
+            self.error(request.request_id, "INVALID_JOB")
+            return
+        source_kind = track.get("sourceKind")
+        stages = (["download"] if source_kind == "youtube" else []) + ["convert"]
+        if stem != "original":
+            stages.append("separate")
+        stages.append("export")
+        try:
+            self.job_manager.start_demo(job_id, stages, request.payload)
+        except WavesEngineError as exc:
+            self.error(request.request_id, exc.code, exc.detail)
+            return
+        self.emit({"type": "job_accepted", "requestId": request.request_id, "jobId": job_id})
+
+    def _job_snapshot(self, request: Request) -> None:
+        self.emit({"type": "job_snapshot", "requestId": request.request_id, **self.job_manager.snapshot()})
 
     def _probe_media(self, request: Request) -> None:
         raw_path = request.payload.get("path")

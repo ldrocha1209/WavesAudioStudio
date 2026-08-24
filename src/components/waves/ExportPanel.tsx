@@ -10,6 +10,8 @@ export function ExportPanel({
   onFormat,
   onQuality,
   onLocation,
+  onBrowse,
+  native,
   disabled,
 }: {
   settings: ExportSettings;
@@ -17,6 +19,8 @@ export function ExportPanel({
   onFormat: (format: AudioFormat) => void;
   onQuality: (quality: Quality) => void;
   onLocation: (path: string) => void;
+  onBrowse: () => void;
+  native: boolean;
   disabled?: boolean | undefined;
 }) {
   const [browsing, setBrowsing] = useState(false);
@@ -47,14 +51,17 @@ export function ExportPanel({
           <p className="mb-2 text-[11px] text-[var(--grey)]">Save to</p>
           <div className="flex items-center gap-3">
             <span className="font-mono text-xs text-[var(--platinum)]/85">{settings.location}</span>
-            <GhostButton onClick={() => setBrowsing(true)} disabled={disabled}>
+            <GhostButton
+              onClick={() => (native ? onBrowse() : setBrowsing(true))}
+              disabled={disabled}
+            >
               Browse
             </GhostButton>
           </div>
         </div>
       </div>
 
-      {browsing && (
+      {browsing && !native && (
         <div
           className="animate-soft-fade fixed inset-0 z-50 flex items-center justify-center bg-[color-mix(in_oklab,var(--shadow-grey)_78%,transparent)] px-6"
           onClick={() => setBrowsing(false)}

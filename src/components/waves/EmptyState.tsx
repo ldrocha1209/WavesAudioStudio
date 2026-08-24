@@ -5,10 +5,11 @@ import { Label } from "./primitives";
 interface EmptyStateProps {
   onFile: (name: string) => void;
   onUrl: (url: string) => void;
+  onBrowse: () => void;
   loading: boolean;
 }
 
-export function EmptyState({ onFile, onUrl, loading }: EmptyStateProps) {
+export function EmptyState({ onFile, onUrl, onBrowse, loading }: EmptyStateProps) {
   const [url, setUrl] = useState("");
   const [dragging, setDragging] = useState(false);
 
@@ -78,6 +79,14 @@ export function EmptyState({ onFile, onUrl, loading }: EmptyStateProps) {
             <p className="mt-2 font-mono text-[11px] tracking-wider text-[var(--grey)]">
               MP3 · WAV · FLAC · AIFF · M4A
             </p>
+            <button
+              type="button"
+              onClick={onBrowse}
+              disabled={loading}
+              className="mt-5 rounded-md border border-[var(--hairline)] px-4 py-2 text-[11px] tracking-wide text-[var(--grey)] transition-colors hover:text-[var(--platinum)]"
+            >
+              Browse files
+            </button>
           </div>
 
           <div className="mt-10 flex items-center gap-4">

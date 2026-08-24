@@ -6,12 +6,12 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-const desktop = process.env.WAVES_DESKTOP === "1";
+const desktop = process.env["WAVES_DESKTOP"] === "1";
 
 export default defineConfig({
   // Packaged desktop builds use static client assets. Lovable preview keeps
   // the existing SSR setup.
-  nitro: desktop ? false : undefined,
+  ...(desktop ? { nitro: false } : {}),
   tanstackStart: {
     server: { entry: "server" },
   },

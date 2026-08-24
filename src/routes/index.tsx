@@ -55,6 +55,7 @@ function WavesApp() {
             <EmptyState
               onFile={waves.loadFile}
               onUrl={waves.loadUrl}
+              onBrowse={waves.chooseSource}
               loading={phase === "loading"}
             />
             {error && (
@@ -79,6 +80,10 @@ function WavesApp() {
                   settings={waves.exportSettings}
                   duration={track.duration}
                   onReset={waves.reset}
+                  onOpenFolder={() => {
+                    const path = waves.outputs[0]?.path;
+                    if (path) void waves.reveal(path);
+                  }}
                 />
               ) : (
                 <div className="space-y-14">
@@ -95,6 +100,8 @@ function WavesApp() {
                     onLocation={(location) =>
                       waves.setExportSettings((prev) => ({ ...prev, location }))
                     }
+                    onBrowse={waves.chooseDestination}
+                    native={waves.native}
                   />
                   <div className="flex flex-col items-center gap-4 pt-2 pb-4">
                     <ProcessButton onClick={waves.process} />

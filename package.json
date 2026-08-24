@@ -16,6 +16,8 @@
     "engine:freeze": "bash scripts/build-engine.sh",
     "phase0:verify": "npm run test:engine && npm run engine:freeze && npm run build:desktop && cargo check --locked --manifest-path src-tauri/Cargo.toml",
     "test:engine": "PYTHONPATH=engine python3.11 -m unittest discover -s engine/tests -v",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run lint && npm run typecheck && npm run test:engine && cargo test --locked --manifest-path src-tauri/Cargo.toml && npm run build:desktop",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
@@ -56,6 +58,8 @@
     "@tanstack/react-start": "1.168.32",
     "@tanstack/router-plugin": "1.168.23",
     "@tauri-apps/api": "2.11.1",
+    "@tauri-apps/plugin-dialog": "^2.4.0",
+    "@tauri-apps/plugin-opener": "^2.5.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

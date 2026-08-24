@@ -10,6 +10,7 @@ export interface Track {
   sourceKind: SourceKind;
   artwork: string;
   peaks: number[];
+  sourcePath?: string;
 }
 
 export type StemId = "original" | "vocals" | "instrumental" | "drums" | "bass" | "other" | "all";
@@ -39,6 +40,7 @@ export interface OutputFile {
   filename: string;
   size: string;
   peaks: number[];
+  path?: string;
 }
 
 export type WavesError =

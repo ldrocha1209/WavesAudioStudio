@@ -1,0 +1,138 @@
+import artworkLocal from "@/assets/artwork-local.jpg";
+import artworkYoutube from "@/assets/artwork-youtube.jpg";
+import type { AppSettings, Track } from "../types";
+import type { DesktopBridge, JobProgressEvent, JobRequest } from "./types";
+
+type Frame = Record<string, unknown> & { type?: string; requestId?: string };
+
+export class TauriBridge implements DesktopBridge {
+  readonly native = true;
+  private pending = new Map<
+    string,
+    {
+      resolve: (frame: Frame) => void;
+      reject: (error: Error) => void;
+      timer: ReturnType<typeof setTimeout>;
+    }
+  >();
+  private jobListeners = new Set<(event: JobProgressEvent) => void>();
+  private initialized?: Promise<void>;
+
+  private init(): Promise<void> {
+    return (this.initialized ??= Promise.all([
+      import("@tauri-apps/api/core"),
+      import("@tauri-apps/api/event"),
+    ]).then(async ([{ invoke }, { listen }]) => {
+      await listen<string>("waves://engine", ({ payload }) => {
+        let frame: Frame;
+        try {
+          frame = JSON.parse(payload) as Frame;
+        } catch {
+          return;
+        }
+        if (frame.requestId) {
+          const pending = this.pending.get(frame.requestId);
+          if (pending) {
+            clearTimeout(pending.timer);
+            this.pending.delete(frame.requestId);
+            if (frame.type === "error")
+              pending.reject(
+                new Error(
+                  String((frame["error"] as { code?: string } | undefined)?.code ?? "ENGINE_ERROR"),
+                ),
+              );
+            else pending.resolve(frame);
+          }
+        }
+        if (frame.type?.startsWith("job_"))
+          this.jobListeners.forEach((listener) => listener(frame as unknown as JobProgressEvent));
+      });
+      await invoke("start_engine");
+    }));
+  }
+
+  private async request(
+    type: string,
+    payload: Record<string, unknown> = {},
+    timeoutMs = 65_000,
+  ): Promise<Frame> {
+    await this.init();
+    const { invoke } = await import("@tauri-apps/api/core");
+    const requestId = crypto.randomUUID();
+    const response = new Promise<Frame>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pending.delete(requestId);
+        reject(new Error("ENGINE_TIMEOUT"));
+      }, timeoutMs);
+      this.pending.set(requestId, { resolve, reject, timer });
+    });
+    await invoke("send_engine", {
+      message: `${JSON.stringify({ protocol: 1, type, requestId, payload })}\n`,
+    });
+    return response;
+  }
+
+  async chooseSource() {
+    const { open } = await import("@tauri-apps/plugin-dialog");
+    const result = await open({
+      multiple: false,
+      directory: false,
+      filters: [{ name: "Audio", extensions: ["mp3", "wav", "flac", "aiff", "aif", "m4a"] }],
+    });
+    return typeof result === "string" ? result : null;
+  }
+  async chooseDestination() {
+    const { open } = await import("@tauri-apps/plugin-dialog");
+    const result = await open({ directory: true, multiple: false });
+    return typeof result === "string" ? result : null;
+  }
+  async inspectFile(path: string): Promise<Track> {
+    const frame = await this.request("inspect_file", { path });
+    const track = frame["track"] as Omit<Track, "artwork"> & { path?: string };
+    return {
+      ...track,
+      ...(track.path ? { sourcePath: track.path } : {}),
+      artwork: artworkLocal,
+    };
+  }
+  async inspectUrl(url: string): Promise<Track> {
+    const frame = await this.request("inspect_url", { url });
+    const track = frame["track"] as Omit<Track, "artwork">;
+    return { ...track, artwork: artworkYoutube };
+  }
+  async startJob(request: JobRequest) {
+    await this.request("start_job", request as unknown as Record<string, unknown>);
+  }
+  async cancelJob(jobId: string) {
+    await this.request("cancel", { jobId });
+  }
+  async subscribeJobs(listener: (event: JobProgressEvent) => void) {
+    await this.init();
+    this.jobListeners.add(listener);
+    return () => this.jobListeners.delete(listener);
+  }
+  async getJobSnapshot() {
+    const frame = await this.request("job_snapshot");
+    return {
+      active: (frame["active"] ?? null) as {
+        jobId: string;
+        state: string;
+        stage?: string;
+        progress: number;
+        context: JobRequest;
+      } | null,
+    };
+  }
+  async getSettings(): Promise<AppSettings> {
+    const { invoke } = await import("@tauri-apps/api/core");
+    return invoke("get_settings");
+  }
+  async saveSettings(settings: AppSettings) {
+    const { invoke } = await import("@tauri-apps/api/core");
+    await invoke("save_settings", { settings });
+  }
+  async reveal(path: string) {
+    const { revealItemInDir } = await import("@tauri-apps/plugin-opener");
+    await revealItemInDir(path);
+  }
+}

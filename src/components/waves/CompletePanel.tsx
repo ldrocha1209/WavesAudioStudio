@@ -57,11 +57,13 @@ export function CompletePanel({
   settings,
   duration,
   onReset,
+  onOpenFolder,
 }: {
   outputs: OutputFile[];
   settings: ExportSettings;
   duration: number;
   onReset: () => void;
+  onOpenFolder: () => void;
 }) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [opened, setOpened] = useState(false);
@@ -92,6 +94,7 @@ export function CompletePanel({
       <div className="mt-12 flex items-center justify-center gap-3">
         <GhostButton
           onClick={() => {
+            onOpenFolder();
             setOpened(true);
             setTimeout(() => setOpened(false), 1800);
           }}

@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Minimum capability set for the Waves Phase 0 window",
+  "description": "Minimum capability set for the Waves desktop window",
   "windows": ["main"],
-  "permissions": ["core:default"]
+  "permissions": ["core:default", "dialog:allow-open", "opener:allow-reveal-item-in-dir"]
 }
