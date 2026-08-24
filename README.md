@@ -1,12 +1,16 @@
 # Waves Audio Studio
 
+> **Current direction (2026-08-23):** Waves is now being completed as a local-first macOS application for the owner's personal use. The source will remain on GitHub and may be shown in a portfolio after explicit approval. Public App Store distribution, commercial hosting, accounts, cloud services, Developer ID notarization, and broad end-user support are out of scope. See [the implementation plan](docs/IMPLEMENTATION_PLAN.md) and [local development guide](docs/LOCAL_DEVELOPMENT.md).
+
+The approved interface below began as a frontend-only design brief. Production desktop and local processing work now proceeds behind adapters so the visual direction remains intact.
+
 Project: WAVES — Desktop Audio Processing Application
 
 Design and build a polished, interactive frontend prototype for a desktop music-production utility called Waves.
 
 Waves will eventually be packaged as a native desktop application. It allows music producers and other users to either paste a YouTube URL or import a local audio file, then download/process that audio and optionally separate it into stems such as vocals, instrumental, drums, bass, and other.
 
-This phase is FRONTEND ONLY.
+The original prototype phase was FRONTEND ONLY. That phase is complete; the current implementation connects the approved interface to a local desktop processing engine.
 
 Do not implement YouTube downloading, FFmpeg, Demucs, AI processing, authentication, accounts, a database, Supabase, cloud storage, or any backend infrastructure.
 

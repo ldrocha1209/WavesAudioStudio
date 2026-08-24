@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Waves Phase 0",
+  "version": "0.0.1",
+  "identifier": "com.wavesaudio.phase0",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:3000",
+    "beforeBuildCommand": "npm run build:desktop",
+    "frontendDist": "../dist/desktop"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Waves",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 900,
+        "minHeight": 650,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' asset: data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"],
+    "resources": {
+      "../engine/dist/waves-engine-onedir/": "waves-engine-onedir/"
+    },
+    "macOS": {
+      "minimumSystemVersion": "14.0",
+      "signingIdentity": "-"
+    }
+  }
+}

@@ -25,7 +25,9 @@ export function TopBar({
           </button>
         )}
         <button onClick={onSettings} className="transition-colors duration-200">
-          <Label className="transition-colors duration-200 hover:text-[var(--platinum)]">Settings</Label>
+          <Label className="transition-colors duration-200 hover:text-[var(--platinum)]">
+            Settings
+          </Label>
         </button>
       </div>
     </header>

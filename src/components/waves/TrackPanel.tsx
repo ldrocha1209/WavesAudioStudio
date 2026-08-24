@@ -24,7 +24,9 @@ export function TrackPanel({ track, scan }: { track: Track; scan?: number | unde
             {track.title}
           </h2>
           <p className="mt-1.5 text-sm text-[var(--grey)]">{track.artist}</p>
-          <p className="mt-3 truncate font-mono text-[11px] text-[var(--grey)]/80">{track.source}</p>
+          <p className="mt-3 truncate font-mono text-[11px] text-[var(--grey)]/80">
+            {track.source}
+          </p>
         </div>
         <Meta className="pt-1 text-sm">{formatTime(track.duration)}</Meta>
       </div>

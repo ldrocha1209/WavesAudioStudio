@@ -1,20 +1,27 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-export function Label({ children, className }: { children: ReactNode; className?: string | undefined }) {
+export function Label({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string | undefined;
+}) {
   return (
-    <span
-      className={cn(
-        "text-[10px] uppercase tracking-[0.22em] text-[var(--grey)]",
-        className,
-      )}
-    >
+    <span className={cn("text-[10px] uppercase tracking-[0.22em] text-[var(--grey)]", className)}>
       {children}
     </span>
   );
 }
 
-export function Meta({ children, className }: { children: ReactNode; className?: string | undefined }) {
+export function Meta({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string | undefined;
+}) {
   return <span className={cn("font-mono text-xs text-[var(--grey)]", className)}>{children}</span>;
 }
 

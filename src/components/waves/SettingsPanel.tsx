@@ -1,5 +1,6 @@
 import { FORMATS, MOCK_FOLDERS, qualitiesFor } from "@/lib/waves/mock";
 import type { AppSettings } from "@/lib/waves/types";
+import type { EngineProofStatus } from "@/lib/waves/useEngineProof";
 import { cn } from "@/lib/utils";
 import { GhostButton, Label, Segmented } from "./primitives";
 
@@ -17,11 +18,13 @@ export function SettingsPanel({
   settings,
   onChange,
   onClose,
+  engineProofStatus,
 }: {
   open: boolean;
   settings: AppSettings;
   onChange: (settings: AppSettings) => void;
   onClose: () => void;
+  engineProofStatus: EngineProofStatus;
 }) {
   if (!open) return null;
 
@@ -51,7 +54,9 @@ export function SettingsPanel({
               <GhostButton
                 onClick={() => {
                   const next =
-                    MOCK_FOLDERS[(MOCK_FOLDERS.indexOf(settings.outputFolder) + 1) % MOCK_FOLDERS.length]!;
+                    MOCK_FOLDERS[
+                      (MOCK_FOLDERS.indexOf(settings.outputFolder) + 1) % MOCK_FOLDERS.length
+                    ]!;
                   onChange({ ...settings, outputFolder: next });
                 }}
               >
@@ -102,7 +107,11 @@ export function SettingsPanel({
           <Label>About</Label>
           <p className="mt-4 text-sm text-[var(--platinum)]/85">Waves 0.1.0 — prototype build</p>
           <p className="mt-1.5 font-mono text-[11px] leading-relaxed text-[var(--grey)]">
-            Local processing engine not yet connected. All downloads, conversions and separations are simulated.
+            Local processing engine not yet connected. All downloads, conversions and separations
+            are simulated.
+          </p>
+          <p className="mt-3 font-mono text-[10px] tracking-wide text-[var(--grey)] uppercase">
+            Desktop engine proof · {engineProofStatus}
           </p>
         </div>
       </aside>

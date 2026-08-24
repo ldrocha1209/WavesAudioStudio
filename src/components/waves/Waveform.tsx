@@ -71,7 +71,10 @@ export function Waveform({
               )}
               style={{
                 height: `${Math.max(2, peak * 100)}%`,
-                boxShadow: played && !subtle ? "0 0 6px color-mix(in oklab, var(--platinum) 22%, transparent)" : undefined,
+                boxShadow:
+                  played && !subtle
+                    ? "0 0 6px color-mix(in oklab, var(--platinum) 22%, transparent)"
+                    : undefined,
               }}
             />
           );

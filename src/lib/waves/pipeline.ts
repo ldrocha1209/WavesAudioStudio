@@ -89,7 +89,10 @@ export function runPipeline(
       stages[index]!.status = "active";
     }
 
-    handlers.onProgress(stages.map((s) => ({ ...s })), Math.min(1, elapsedTotal / total));
+    handlers.onProgress(
+      stages.map((s) => ({ ...s })),
+      Math.min(1, elapsedTotal / total),
+    );
     frame = requestAnimationFrame(tick);
   };
 

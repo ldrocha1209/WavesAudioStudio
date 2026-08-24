@@ -11,6 +11,7 @@ import { StemPicker } from "@/components/waves/StemPicker";
 import { TopBar } from "@/components/waves/TopBar";
 import { TrackPanel } from "@/components/waves/TrackPanel";
 import { useWaves } from "@/lib/waves/useWaves";
+import { useEngineProof } from "@/lib/waves/useEngineProof";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/")({
 
 function WavesApp() {
   const waves = useWaves();
+  const engineProofStatus = useEngineProof();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { phase, track, error } = waves;
 
@@ -50,7 +52,11 @@ function WavesApp() {
       <main className="scrollarea relative flex-1">
         {phase === "empty" || phase === "loading" ? (
           <div className="relative h-full">
-            <EmptyState onFile={waves.loadFile} onUrl={waves.loadUrl} loading={phase === "loading"} />
+            <EmptyState
+              onFile={waves.loadFile}
+              onUrl={waves.loadUrl}
+              loading={phase === "loading"}
+            />
             {error && (
               <div className="absolute inset-x-0 bottom-8 mx-auto w-full max-w-xl px-6">
                 <ErrorNotice error={error} onDismiss={waves.clearError} />
@@ -108,6 +114,7 @@ function WavesApp() {
         settings={waves.settings}
         onChange={waves.applySettings}
         onClose={() => setSettingsOpen(false)}
+        engineProofStatus={engineProofStatus}
       />
     </div>
   );

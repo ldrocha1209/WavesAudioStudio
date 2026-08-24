@@ -27,7 +27,12 @@ export function ExportPanel({
       <div className="mt-5 grid grid-cols-[auto_auto_1fr] items-center gap-x-10 gap-y-6">
         <div>
           <p className="mb-2 text-[11px] text-[var(--grey)]">Format</p>
-          <Segmented options={FORMATS} value={settings.format} onChange={onFormat} disabled={disabled} />
+          <Segmented
+            options={FORMATS}
+            value={settings.format}
+            onChange={onFormat}
+            disabled={disabled}
+          />
         </div>
         <div>
           <p className="mb-2 text-[11px] text-[var(--grey)]">Quality</p>

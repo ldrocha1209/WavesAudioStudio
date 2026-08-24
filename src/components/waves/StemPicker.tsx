@@ -36,7 +36,9 @@ export function StemPicker({
               <span
                 className={cn(
                   "block text-sm transition-colors duration-200",
-                  selected ? "text-[var(--platinum)]" : "text-[var(--grey)] group-hover:text-[var(--platinum)]/80",
+                  selected
+                    ? "text-[var(--platinum)]"
+                    : "text-[var(--grey)] group-hover:text-[var(--platinum)]/80",
                 )}
               >
                 {option.label}

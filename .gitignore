@@ -30,3 +30,18 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Phase 0 generated artifacts and local environments
+engine/.venv/
+engine/.model-cache/
+engine/.pyinstaller/
+engine/.phase0-output/
+engine/.phase0-youtube/
+engine/phase0-fixtures/
+engine/build/
+engine/dist/
+engine/*.egg-info/
+**/__pycache__/
+*.py[cod]
+src-tauri/gen/schemas/
+src-tauri/target/

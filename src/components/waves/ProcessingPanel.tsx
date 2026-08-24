@@ -50,7 +50,11 @@ export function ProcessingPanel({
                 {stage.label}
               </span>
               <span className="font-mono text-[11px] text-[var(--grey)] tabular-nums">
-                {stage.status === "done" ? "✓" : stage.status === "active" ? `${Math.round(stage.progress * 100)}%` : "—"}
+                {stage.status === "done"
+                  ? "✓"
+                  : stage.status === "active"
+                    ? `${Math.round(stage.progress * 100)}%`
+                    : "—"}
               </span>
             </div>
             <div className="mt-3 h-px w-full bg-[var(--hairline)]">

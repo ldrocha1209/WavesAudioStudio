@@ -75,10 +75,13 @@ export function useWaves() {
   const pipeline = useRef<PipelineHandle | null>(null);
   const loadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => {
-    pipeline.current?.cancel();
-    if (loadTimer.current) clearTimeout(loadTimer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      pipeline.current?.cancel();
+      if (loadTimer.current) clearTimeout(loadTimer.current);
+    },
+    [],
+  );
 
   const setFormat = useCallback((format: AudioFormat) => {
     setExportSettings((prev) => {

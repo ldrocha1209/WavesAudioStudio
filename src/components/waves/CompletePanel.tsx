@@ -37,9 +37,17 @@ function OutputRow({
       />
       <div className="w-64 shrink-0">
         <p className="text-sm text-[var(--platinum)]">{output.label}</p>
-        <p className="mt-0.5 truncate font-mono text-[11px] text-[var(--grey)]">{output.filename} · {output.size}</p>
+        <p className="mt-0.5 truncate font-mono text-[11px] text-[var(--grey)]">
+          {output.filename} · {output.size}
+        </p>
       </div>
-      <Waveform peaks={output.peaks} progress={playing ? player.progress : 0} height={38} subtle className="flex-1" />
+      <Waveform
+        peaks={output.peaks}
+        progress={playing ? player.progress : 0}
+        height={38}
+        subtle
+        className="flex-1"
+      />
     </div>
   );
 }
@@ -64,8 +72,8 @@ export function CompletePanel({
         <Label>Complete</Label>
         <h2 className="mt-4 text-3xl font-medium text-[var(--platinum)]">Your track is ready.</h2>
         <p className="mt-3 font-mono text-xs text-[var(--grey)]">
-          {outputs.length} file{outputs.length > 1 ? "s" : ""} · {settings.format} · {settings.quality} ·{" "}
-          {settings.location}
+          {outputs.length} file{outputs.length > 1 ? "s" : ""} · {settings.format} ·{" "}
+          {settings.quality} · {settings.location}
         </p>
       </div>
 

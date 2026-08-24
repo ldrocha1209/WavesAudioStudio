@@ -74,7 +74,8 @@ export function buildOutputs(track: Track, stem: StemId, format: AudioFormat): O
   const base = track.title.replace(/[^\w\s-]/g, "").trim();
   const ext = EXT[format];
   const size = (factor: number) => {
-    const mb = (track.duration / 60) * (format === "WAV" ? 10.6 : format === "FLAC" ? 6.2 : 2.4) * factor;
+    const mb =
+      (track.duration / 60) * (format === "WAV" ? 10.6 : format === "FLAC" ? 6.2 : 2.4) * factor;
     return `${mb.toFixed(1)} MB`;
   };
   const make = (id: string, label: string, seed: number, factor = 1): OutputFile => ({
@@ -103,7 +104,8 @@ export function formatTime(seconds: number): string {
   return `${m}:${String(s % 60).padStart(2, "0")}`;
 }
 
-const YT_PATTERN = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=[\w-]{6,}|youtu\.be\/[\w-]{6,})/i;
+const YT_PATTERN =
+  /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=[\w-]{6,}|youtu\.be\/[\w-]{6,})/i;
 
 export function classifyUrl(url: string): "valid" | "invalid-url" | "unavailable-video" {
   const trimmed = url.trim();
