@@ -54,6 +54,21 @@ class JobManager:
             self._active = job
         threading.Thread(target=self._run_demo, args=(job, stages), daemon=True).start()
 
+    def start_work(
+        self,
+        job_id: str,
+        context: dict[str, Any],
+        runner: Callable[[dict[str, Any], Path, Callable[[], bool], Callable[[str, float, float], None]], list[dict[str, Any]]],
+    ) -> None:
+        if not job_id or len(job_id) > 128:
+            raise WavesEngineError("INVALID_JOB")
+        with self._lock:
+            if self._active is not None:
+                raise WavesEngineError("JOB_ACTIVE")
+            job = Job(job_id, state="running", context=context)
+            self._active = job
+        threading.Thread(target=self._run_work, args=(job, runner), daemon=True).start()
+
     def cancel(self, job_id: str) -> None:
         with self._lock:
             if self._active is None or self._active.id != job_id:
@@ -88,6 +103,42 @@ class JobManager:
                         )
                 job.state = "completed"
                 self._event(job, "job_completed", outputs=[])
+        finally:
+            with self._lock:
+                if self._active is job:
+                    self._active = None
+
+    def _run_work(
+        self,
+        job: Job,
+        runner: Callable[[dict[str, Any], Path, Callable[[], bool], Callable[[str, float, float], None]], list[dict[str, Any]]],
+    ) -> None:
+        try:
+            with tempfile.TemporaryDirectory(prefix=f"waves-{job.id}-") as workspace:
+                job.workspace = Path(workspace)
+                self._event(job, "job_started")
+
+                def progress(stage: str, stage_progress: float, overall_progress: float) -> None:
+                    job.stage = stage
+                    job.progress = max(job.progress, min(1.0, overall_progress))
+                    self._event(job, "job_progress", stage=stage, stageProgress=max(0.0, min(1.0, stage_progress)), overallProgress=job.progress)
+
+                outputs = runner(job.context, job.workspace, job.cancel.is_set, progress)
+                if job.cancel.is_set():
+                    raise WavesEngineError("CANCELLED")
+                job.state = "completed"
+                job.progress = 1.0
+                self._event(job, "job_completed", outputs=outputs)
+        except WavesEngineError as exc:
+            if exc.code == "CANCELLED":
+                job.state = "cancelled"
+                self._event(job, "job_cancelled")
+            else:
+                job.state = "failed"
+                self._event(job, "job_failed", error={"code": exc.code})
+        except Exception:
+            job.state = "failed"
+            self._event(job, "job_failed", error={"code": "ENGINE_INTERNAL"})
         finally:
             with self._lock:
                 if self._active is job:

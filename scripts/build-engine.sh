@@ -20,5 +20,17 @@ if [[ ! -x "$engine_binary" ]]; then
   exit 1
 fi
 
+tools_dir="$engine_dir/dist/waves-engine-onedir/tools"
+mkdir -p "$tools_dir"
+for tool in ffmpeg ffprobe node; do
+  tool_path="$(command -v "$tool" || true)"
+  if [[ -z "$tool_path" ]]; then
+    echo "Required local tool '$tool' was not found on PATH." >&2
+    exit 1
+  fi
+  cp -L "$tool_path" "$tools_dir/$tool"
+  chmod 755 "$tools_dir/$tool"
+done
+
 "$engine_binary" <<<'{"protocol":1,"type":"shutdown","requestId":"build-check"}' >/dev/null
 echo "Frozen Waves engine is ready at $engine_dir/dist/waves-engine-onedir"

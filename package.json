@@ -15,9 +15,10 @@
     "engine:bootstrap": "bash scripts/bootstrap-engine.sh",
     "engine:freeze": "bash scripts/build-engine.sh",
     "phase0:verify": "npm run test:engine && npm run engine:freeze && npm run build:desktop && cargo check --locked --manifest-path src-tauri/Cargo.toml",
-    "test:engine": "PYTHONPATH=engine python3.11 -m unittest discover -s engine/tests -v",
+    "test:engine": "PYTHONPATH=engine engine/.venv/bin/python -m unittest discover -s engine/tests -v",
     "typecheck": "tsc --noEmit",
     "check": "npm run lint && npm run typecheck && npm run test:engine && cargo test --locked --manifest-path src-tauri/Cargo.toml && npm run build:desktop",
+    "smoke:youtube": "PYTHONPATH=engine engine/.venv/bin/python scripts/smoke_youtube.py",
     "lint": "eslint .",
     "format": "prettier --write ."
   },

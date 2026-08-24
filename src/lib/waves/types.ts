@@ -11,6 +11,7 @@ export interface Track {
   artwork: string;
   peaks: number[];
   sourcePath?: string;
+  sourceUrl?: string;
 }
 
 export type StemId = "original" | "vocals" | "instrumental" | "drums" | "bass" | "other" | "all";

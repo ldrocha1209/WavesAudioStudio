@@ -11,7 +11,7 @@ Waves is a personal, local-first macOS desktop application. The supported develo
 - Xcode Command Line Tools
 - FFmpeg for development smoke tests
 
-The final local bundle is intended to carry its runtime dependencies. Development commands remain explicit so a clean checkout can be reproduced.
+The final local bundle is intended to carry its runtime dependencies. The local build copies FFmpeg, FFprobe, and Node (used by yt-dlp's JavaScript challenge support) into the engine resource tree. Development commands remain explicit so a clean checkout can be reproduced.
 
 ## First setup
 

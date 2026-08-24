@@ -8,6 +8,7 @@ import os
 import shutil
 import stat
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +23,9 @@ def resolve_tool(name: str) -> str:
     configured = os.environ.get(f"WAVES_{name.upper()}")
     if configured and Path(configured).is_file():
         return configured
+    packaged = Path(sys.executable).resolve().parent / "tools" / name
+    if packaged.is_file():
+        return os.fspath(packaged)
     located = shutil.which(name)
     if located:
         return located

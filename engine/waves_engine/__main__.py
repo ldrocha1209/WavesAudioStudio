@@ -13,8 +13,10 @@ from typing import Any
 
 from . import ENGINE_VERSION
 from .errors import WavesEngineError
+from .downloader import inspect_url
 from .jobs import JobManager
 from .media import inspect_file
+from .pipeline import run_pipeline
 from .protocol import ProtocolError, Request, parse_request, write_message
 
 
@@ -154,7 +156,16 @@ class Engine:
         self.emit({"type": "source_inspected", "requestId": request.request_id, "track": track})
 
     def _inspect_url(self, request: Request) -> None:
-        self.error(request.request_id, "URL_PIPELINE_NOT_READY")
+        raw_url = request.payload.get("url")
+        if not isinstance(raw_url, str):
+            self.error(request.request_id, "URL_INVALID")
+            return
+        try:
+            track = inspect_url(raw_url)
+        except WavesEngineError as exc:
+            self.error(request.request_id, exc.code, exc.detail)
+            return
+        self.emit({"type": "source_inspected", "requestId": request.request_id, "track": track})
 
     def _start_job(self, request: Request) -> None:
         job_id = request.payload.get("jobId")
@@ -163,13 +174,8 @@ class Engine:
         if not isinstance(job_id, str) or not isinstance(track, dict) or not isinstance(stem, str):
             self.error(request.request_id, "INVALID_JOB")
             return
-        source_kind = track.get("sourceKind")
-        stages = (["download"] if source_kind == "youtube" else []) + ["convert"]
-        if stem != "original":
-            stages.append("separate")
-        stages.append("export")
         try:
-            self.job_manager.start_demo(job_id, stages, request.payload)
+            self.job_manager.start_work(job_id, request.payload, run_pipeline)
         except WavesEngineError as exc:
             self.error(request.request_id, exc.code, exc.detail)
             return
