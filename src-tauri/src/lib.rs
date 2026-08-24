@@ -18,20 +18,21 @@ use tauri_plugin_dialog::DialogExt;
 #[serde(rename_all = "camelCase")]
 struct AppSettings {
     output_folder: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    output_folder_grant: Option<String>,
     default_format: String,
     default_quality: String,
     hardware_acceleration: String,
-    appearance: String,
 }
 
 impl Default for AppSettings {
     fn default() -> Self {
         Self {
             output_folder: "~/Music/Waves".into(),
+            output_folder_grant: None,
             default_format: "WAV".into(),
             default_quality: "Highest".into(),
             hardware_acceleration: "Automatic".into(),
-            appearance: "Shadow".into(),
         }
     }
 }
@@ -85,16 +86,38 @@ fn register_source(path: PathBuf, grants: &GrantState) -> Result<PathGrant, Stri
     })
 }
 
+fn register_destination(path: PathBuf, grants: &GrantState) -> Result<PathGrant, String> {
+    let path = path
+        .canonicalize()
+        .map_err(|_| "destination is unavailable".to_string())?;
+    if !path.is_dir() {
+        return Err("destination is not a folder".to_string());
+    }
+    let grant_id = new_grant_id(grants);
+    grants
+        .destinations
+        .lock()
+        .map_err(|_| "destination grant lock poisoned".to_string())?
+        .insert(grant_id.clone(), path.clone());
+    Ok(PathGrant {
+        grant_id,
+        display_path: path.display().to_string(),
+    })
+}
+
 #[tauri::command]
-fn choose_source(
+async fn choose_source(
     app: AppHandle,
     grants: State<'_, GrantState>,
 ) -> Result<Option<PathGrant>, String> {
-    let selected = app
-        .dialog()
-        .file()
-        .add_filter("Audio", &["mp3", "wav", "flac", "aiff", "aif", "m4a"])
-        .blocking_pick_file();
+    let selected = tauri::async_runtime::spawn_blocking(move || {
+        app.dialog()
+            .file()
+            .add_filter("Audio", &["mp3", "wav", "flac", "aiff", "aif", "m4a"])
+            .blocking_pick_file()
+    })
+    .await
+    .map_err(|error| format!("source dialog failed: {error}"))?;
     selected
         .map(|path| {
             path.into_path()
@@ -113,29 +136,21 @@ fn register_dropped_source(
 }
 
 #[tauri::command]
-fn choose_destination(
+async fn choose_destination(
     app: AppHandle,
     grants: State<'_, GrantState>,
 ) -> Result<Option<PathGrant>, String> {
-    let Some(selected) = app.dialog().file().blocking_pick_folder() else {
+    let selected =
+        tauri::async_runtime::spawn_blocking(move || app.dialog().file().blocking_pick_folder())
+            .await
+            .map_err(|error| format!("destination dialog failed: {error}"))?;
+    let Some(selected) = selected else {
         return Ok(None);
     };
     let path = selected
         .into_path()
         .map_err(|_| "selected destination is not a filesystem path".to_string())?;
-    let path = path
-        .canonicalize()
-        .map_err(|_| "destination is unavailable".to_string())?;
-    let grant_id = new_grant_id(&grants);
-    grants
-        .destinations
-        .lock()
-        .map_err(|_| "destination grant lock poisoned".to_string())?
-        .insert(grant_id.clone(), path.clone());
-    Ok(Some(PathGrant {
-        grant_id,
-        display_path: path.display().to_string(),
-    }))
+    register_destination(path, &grants).map(Some)
 }
 
 #[tauri::command]
@@ -276,16 +291,50 @@ fn settings_path(app: &AppHandle) -> Result<PathBuf, String> {
 }
 
 #[tauri::command]
-fn get_settings(app: AppHandle) -> AppSettings {
-    settings_path(&app)
+fn get_settings(app: AppHandle, grants: State<'_, GrantState>) -> AppSettings {
+    let mut settings: AppSettings = settings_path(&app)
         .ok()
         .and_then(|path| fs::read_to_string(path).ok())
         .and_then(|value| serde_json::from_str(&value).ok())
-        .unwrap_or_default()
+        .unwrap_or_default();
+    if settings.output_folder != "~/Music/Waves" {
+        match register_destination(PathBuf::from(&settings.output_folder), &grants) {
+            Ok(grant) => {
+                settings.output_folder = grant.display_path;
+                settings.output_folder_grant = Some(grant.grant_id);
+            }
+            Err(_) => {
+                settings.output_folder = "~/Music/Waves".into();
+                settings.output_folder_grant = None;
+            }
+        }
+    }
+    settings
 }
 
 #[tauri::command]
-fn save_settings(app: AppHandle, settings: AppSettings) -> Result<(), String> {
+fn save_settings(
+    app: AppHandle,
+    grants: State<'_, GrantState>,
+    mut settings: AppSettings,
+) -> Result<(), String> {
+    if settings.output_folder == "~/Music/Waves" {
+        settings.output_folder_grant = None;
+    } else {
+        let grant_id = settings
+            .output_folder_grant
+            .as_deref()
+            .ok_or_else(|| "default destination grant required".to_string())?;
+        let granted = grants
+            .destinations
+            .lock()
+            .map_err(|_| "destination grant lock poisoned".to_string())?
+            .get(grant_id)
+            .cloned()
+            .ok_or_else(|| "default destination grant is invalid".to_string())?;
+        settings.output_folder = granted.display().to_string();
+        settings.output_folder_grant = None;
+    }
     let path = settings_path(&app)?;
     let temporary = path.with_extension("json.tmp");
     let contents = serde_json::to_vec_pretty(&settings).map_err(|error| error.to_string())?;
@@ -442,4 +491,25 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running Waves");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::AppSettings;
+
+    #[test]
+    fn legacy_appearance_setting_is_ignored_and_removed() {
+        let legacy = r#"{
+            "outputFolder": "~/Music/Waves",
+            "defaultFormat": "WAV",
+            "defaultQuality": "Highest",
+            "hardwareAcceleration": "Automatic",
+            "appearance": "Shadow (contrast)"
+        }"#;
+        let settings: AppSettings =
+            serde_json::from_str(legacy).expect("legacy settings should load");
+        assert!(settings.output_folder_grant.is_none());
+        let migrated = serde_json::to_string(&settings).expect("settings should serialize");
+        assert!(!migrated.contains("appearance"));
+    }
 }

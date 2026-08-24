@@ -89,7 +89,7 @@ function WavesApp() {
                 <div className="space-y-14">
                   <TrackPanel track={track} />
                   {error && <ErrorNotice error={error} onDismiss={waves.clearError} />}
-                  <StemPicker value={waves.stem} onChange={waves.setStem} />
+                  <StemPicker selection={waves.selection} onToggle={waves.toggleOutput} />
                   <ExportPanel
                     settings={waves.exportSettings}
                     qualities={waves.qualities}
@@ -120,9 +120,9 @@ function WavesApp() {
         open={settingsOpen}
         settings={waves.settings}
         onChange={waves.applySettings}
+        onChooseOutputFolder={waves.chooseDefaultDestination}
         onClose={() => setSettingsOpen(false)}
         engineProofStatus={engineProofStatus}
-        native={waves.native}
       />
     </div>
   );

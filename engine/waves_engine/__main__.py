@@ -14,7 +14,7 @@ from typing import Any
 
 from . import ENGINE_VERSION
 from .errors import WavesEngineError
-from .downloader import inspect_url
+from .downloader import inspect_url, prepare_preview
 from .jobs import JobManager
 from .media import inspect_file
 from .pipeline import run_pipeline
@@ -163,6 +163,7 @@ class Engine:
             return
         try:
             track = inspect_url(raw_url)
+            track["sourcePath"] = str(prepare_preview(raw_url, str(track["id"])))
         except WavesEngineError as exc:
             self.error(request.request_id, exc.code, exc.detail)
             return
@@ -171,8 +172,8 @@ class Engine:
     def _start_job(self, request: Request) -> None:
         job_id = request.payload.get("jobId")
         track = request.payload.get("track")
-        stem = request.payload.get("stem")
-        if not isinstance(job_id, str) or not isinstance(track, dict) or not isinstance(stem, str):
+        selection = request.payload.get("selection")
+        if not isinstance(job_id, str) or not isinstance(track, dict) or not isinstance(selection, list):
             self.error(request.request_id, "INVALID_JOB")
             return
         try:

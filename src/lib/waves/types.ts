@@ -15,7 +15,8 @@ export interface Track {
   sourceUrl?: string;
 }
 
-export type StemId = "original" | "vocals" | "instrumental" | "drums" | "bass" | "other" | "all";
+export type OutputId = "original" | "vocals" | "instrumental" | "drums" | "bass" | "other";
+export type OutputChoiceId = OutputId | "all";
 
 export type AudioFormat = "WAV" | "MP3" | "FLAC";
 export type Quality = "Highest" | "320 kbps" | "256 kbps" | "192 kbps";
@@ -58,8 +59,8 @@ export type Phase = "empty" | "loading" | "ready" | "processing" | "complete";
 
 export interface AppSettings {
   outputFolder: string;
+  outputFolderGrant?: string;
   defaultFormat: AudioFormat;
   defaultQuality: Quality;
   hardwareAcceleration: "Automatic" | "GPU" | "CPU only";
-  appearance: "Shadow" | "Shadow (contrast)";
 }

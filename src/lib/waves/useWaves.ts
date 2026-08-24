@@ -7,10 +7,11 @@ import type {
   AudioFormat,
   ExportSettings,
   OutputFile,
+  OutputChoiceId,
+  OutputId,
   Phase,
   Quality,
   Stage,
-  StemId,
   Track,
   WavesError,
 } from "./types";
@@ -47,8 +48,14 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultFormat: "WAV",
   defaultQuality: "Highest",
   hardwareAcceleration: "Automatic",
-  appearance: "Shadow",
 };
+
+const STEM_OUTPUTS: OutputId[] = ["vocals", "instrumental", "drums", "bass", "other"];
+const OUTPUT_ORDER: OutputId[] = ["original", ...STEM_OUTPUTS];
+
+function orderSelection(selection: OutputId[]): OutputId[] {
+  return OUTPUT_ORDER.filter((id) => selection.includes(id));
+}
 
 function mapError(error: unknown): WavesError {
   const code = error instanceof Error ? error.message : String(error);
@@ -63,7 +70,7 @@ export function useWaves() {
   const bridge = useMemo(() => getDesktopBridge(), []);
   const [phase, setPhase] = useState<Phase>("empty");
   const [track, setTrack] = useState<Track | null>(null);
-  const [stem, setStem] = useState<StemId>("original");
+  const [selection, setSelection] = useState<OutputId[]>(["original"]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [exportSettings, setExportSettings] = useState<ExportSettings>({
     format: "WAV",
@@ -98,7 +105,7 @@ export function useWaves() {
       setOutputs(
         event.outputs?.length
           ? event.outputs
-          : buildOutputs(current.track, current.stem, current.export.format),
+          : buildOutputs(current.track, current.selection, current.export.format),
       );
       setPhase("complete");
       activeRequest.current = null;
@@ -124,16 +131,21 @@ export function useWaves() {
         format: next.defaultFormat,
         quality: next.defaultQuality,
         location: next.outputFolder,
+        ...(next.outputFolderGrant ? { destinationGrant: next.outputFolderGrant } : {}),
       });
     });
     void bridge.getJobSnapshot().then(({ active }) => {
       if (!active?.context?.track) return;
       activeRequest.current = active.context;
       setTrack(active.context.track);
-      setStem(active.context.stem);
+      setSelection(active.context.selection);
       setExportSettings(active.context.export);
       setStages(
-        buildStages({ sourceKind: active.context.track.sourceKind, stem: active.context.stem }),
+        buildStages({
+          sourceKind: active.context.track.sourceKind,
+          selection: active.context.selection,
+          sourceReady: Boolean(active.context.track.sourcePath),
+        }),
       );
       setOverall(active.progress);
       setPhase("processing");
@@ -205,18 +217,41 @@ export function useWaves() {
     },
     [bridge],
   );
+  const toggleOutput = useCallback((choice: OutputChoiceId) => {
+    setSelection((previous) => {
+      const hasOriginal = previous.includes("original");
+      const allStemsSelected = STEM_OUTPUTS.every((id) => previous.includes(id));
+      if (choice === "all")
+        return orderSelection([...(hasOriginal ? ["original" as const] : []), ...STEM_OUTPUTS]);
+      if (choice === "original") {
+        if (!hasOriginal) return orderSelection(["original", ...previous]);
+        return previous.length === 1 ? previous : previous.filter((id) => id !== "original");
+      }
+      if (allStemsSelected)
+        return orderSelection([...(hasOriginal ? ["original" as const] : []), choice]);
+      if (previous.includes(choice))
+        return previous.length === 1 ? previous : previous.filter((id) => id !== choice);
+      return orderSelection([...previous, choice]);
+    });
+  }, []);
   const process = useCallback(() => {
-    if (!track) return;
+    if (!track || selection.length === 0) return;
     const request: JobRequest = {
       jobId: crypto.randomUUID(),
       track,
-      stem,
+      selection,
       export: exportSettings,
       devicePolicy: settings.hardwareAcceleration,
     };
     activeRequest.current = request;
     setError(null);
-    setStages(buildStages({ sourceKind: track.sourceKind, stem }));
+    setStages(
+      buildStages({
+        sourceKind: track.sourceKind,
+        selection,
+        sourceReady: Boolean(track.sourcePath),
+      }),
+    );
     setOverall(0);
     setPhase("processing");
     void bridge.startJob(request).catch((nextError) => {
@@ -224,7 +259,7 @@ export function useWaves() {
       setPhase("ready");
       activeRequest.current = null;
     });
-  }, [bridge, exportSettings, settings.hardwareAcceleration, stem, track]);
+  }, [bridge, exportSettings, settings.hardwareAcceleration, selection, track]);
   const cancel = useCallback(() => {
     const id = activeRequest.current?.jobId;
     if (id) void bridge.cancelJob(id).catch(() => setError("processing-failed"));
@@ -235,21 +270,25 @@ export function useWaves() {
     setOutputs([]);
     setStages([]);
     setOverall(0);
-    setStem("original");
+    setSelection(["original"]);
     setError(null);
     setPhase("empty");
   }, []);
   const applySettings = useCallback(
     (next: AppSettings) => {
       setSettings(next);
-      setExportSettings((previous) => ({
-        ...previous,
-        location: next.outputFolder,
-        format: next.defaultFormat,
-        quality: qualitiesFor(next.defaultFormat).includes(next.defaultQuality)
-          ? next.defaultQuality
-          : qualitiesFor(next.defaultFormat)[0],
-      }));
+      setExportSettings((previous) => {
+        const { destinationGrant: _previousGrant, ...rest } = previous;
+        return {
+          ...rest,
+          location: next.outputFolder,
+          ...(next.outputFolderGrant ? { destinationGrant: next.outputFolderGrant } : {}),
+          format: next.defaultFormat,
+          quality: qualitiesFor(next.defaultFormat).includes(next.defaultQuality)
+            ? next.defaultQuality
+            : qualitiesFor(next.defaultFormat)[0],
+        };
+      });
       void bridge.saveSettings(next);
     },
     [bridge],
@@ -263,12 +302,21 @@ export function useWaves() {
         destinationGrant: destination.grantId,
       }));
   }, [bridge]);
+  const chooseDefaultDestination = useCallback(async () => {
+    const destination = await bridge.chooseDestination();
+    if (!destination) return;
+    applySettings({
+      ...settings,
+      outputFolder: destination.path,
+      outputFolderGrant: destination.grantId,
+    });
+  }, [applySettings, bridge, settings]);
 
   return {
     phase,
     track,
-    stem,
-    setStem,
+    selection,
+    toggleOutput,
     exportSettings,
     setExportSettings,
     setFormat,
@@ -287,6 +335,7 @@ export function useWaves() {
     settings,
     applySettings,
     chooseDestination,
+    chooseDefaultDestination,
     reveal: bridge.reveal.bind(bridge),
     native: bridge.native,
   };

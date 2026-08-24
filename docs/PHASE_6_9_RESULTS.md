@@ -6,7 +6,7 @@ Date: 2026-08-23
 ## Phase 6 — Demucs separation
 
 - A dedicated spawn-based worker lazily imports Torch/Demucs, loads pinned `htdemucs`, decodes to the model's stereo/sample-rate contract, and performs one four-source inference per job.
-- Vocals, Drums, Bass, Other, and All Stems map from model-declared source names. Instrumental is the float-precision sum of drums+bass+other.
+- Vocals, Drums, Bass, and Other map from model-declared source names. Instrumental is the float-precision sum of drums+bass+other, so All 5 Stems publishes all four native sources plus Instrumental from one inference.
 - The supervisor can terminate and reap the worker during model loading or inference; cancelled jobs do not publish partial outputs.
 - Stems remain float WAV inside the private workspace and pass through the shared final encoder exactly once.
 
@@ -26,7 +26,8 @@ Date: 2026-08-23
 
 ## Phase 9 — preview and output workflow
 
-- Native source/destination selection, persisted defaults, Finder reveal, and completion rows use real records.
+- Native source/destination selection uses non-blocking dialogs; custom default folders retain a regenerated local grant across restarts. Finder reveal and completion rows use real records.
+- Loaded local tracks resolve their canonical playback path, while YouTube intake prepares and reuses a local preview cache before presenting the processing screen.
 - Local sources and generated outputs use HTML audio backed by Tauri's local asset protocol, with play/pause/seek and single-active-preview behavior.
 - Audio elements are paused, detached, and released on reset/unmount.
 

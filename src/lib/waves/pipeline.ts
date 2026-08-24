@@ -1,8 +1,9 @@
-import type { SourceKind, Stage, StageId, StemId } from "./types";
+import type { OutputId, SourceKind, Stage, StageId } from "./types";
 
 export interface PipelineOptions {
   sourceKind: SourceKind;
-  stem: StemId;
+  selection: OutputId[];
+  sourceReady?: boolean;
   /** Force a mocked failure at a given stage. */
   failAt?: StageId | undefined;
 }
@@ -26,11 +27,11 @@ const DURATIONS: Record<StageId, number> = {
   export: 1600,
 };
 
-export function buildStages({ sourceKind, stem }: PipelineOptions): Stage[] {
+export function buildStages({ sourceKind, selection, sourceReady }: PipelineOptions): Stage[] {
   const ids: StageId[] = [];
-  if (sourceKind === "youtube") ids.push("download");
+  if (sourceKind === "youtube" && !sourceReady) ids.push("download");
   ids.push("convert");
-  if (stem !== "original") ids.push("separate");
+  if (selection.some((id) => id !== "original")) ids.push("separate");
   ids.push("export");
   return ids.map((id, i) => ({
     id,

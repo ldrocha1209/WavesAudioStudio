@@ -96,11 +96,12 @@ export class TauriBridge implements DesktopBridge {
     return {
       ...track,
       sourceGrant: grantId,
+      ...(track.path ? { sourcePath: track.path } : {}),
       artwork: artworkLocal,
     };
   }
   async inspectUrl(url: string): Promise<Track> {
-    const frame = await this.request("inspect_url", { url });
+    const frame = await this.request("inspect_url", { url }, 10 * 60_000);
     const track = frame["track"] as Omit<Track, "artwork"> & { thumbnailPath?: string };
     let artwork = artworkYoutube;
     if (track.thumbnailPath) {

@@ -9,13 +9,13 @@ The source is maintained on GitHub for backup, review, and presentation. Waves i
 - Import MP3, WAV, FLAC, AIFF/AIF, or M4A with a native dialog or drag/drop.
 - Inspect metadata and waveform peaks without changing the source.
 - Load one YouTube video and download its best available audio; playlists are rejected.
-- Export Original, Vocals, Instrumental, Drums, Bass, Other, or all four native stems.
+- Select Original independently and combine any of Vocals, Instrumental, Drums, Bass, or Other in one job; All 5 Stems selects every separated output.
 - Write WAV (24-bit), FLAC, or MP3 (320/256/192 kbps) atomically without overwriting existing files.
 - Cancel processing, preview audio, reveal results in Finder, and persist local preferences.
 
 ## Supported build
 
-Waves v1.0 is validated on the owner's Intel Mac with macOS 14 or newer. The local artifact is ad-hoc signed and not notarized. It is not a universal or Apple Silicon release.
+Waves v1.0.1 is validated on the owner's Intel Mac with macOS 14 or newer. The local artifact is ad-hoc signed and not notarized. It is not a universal or Apple Silicon release.
 
 Prerequisites for a source build:
 
@@ -45,7 +45,7 @@ Generated artifacts are under `src-tauri/target/release/bundle/` and are intenti
 - [Local development and packaging](docs/LOCAL_DEVELOPMENT.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Implementation plan and phase status](docs/IMPLEMENTATION_PLAN.md)
-- [v1.0 release evidence](docs/RELEASE_1_0_RESULTS.md)
+- [v1 release evidence](docs/RELEASE_1_0_RESULTS.md)
 - [Privacy](PRIVACY.md)
 - [Third-party notices](THIRD_PARTY_NOTICES.md)
 

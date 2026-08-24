@@ -17,7 +17,6 @@ const DEFAULTS: AppSettings = {
   defaultFormat: "WAV",
   defaultQuality: "Highest",
   hardwareAcceleration: "Automatic",
-  appearance: "Shadow",
 };
 
 export class MockBridge implements DesktopBridge {
@@ -28,7 +27,7 @@ export class MockBridge implements DesktopBridge {
     return null;
   }
   async chooseDestination() {
-    return null;
+    return { path: "~/Desktop/Stems", grantId: "mock-destination" };
   }
   async registerDroppedSource(path: string) {
     return path;
@@ -50,10 +49,13 @@ export class MockBridge implements DesktopBridge {
     return { ...MOCK_YOUTUBE_TRACK, source: `YouTube · ${url.trim()}`, artwork: artworkYoutube };
   }
   async startJob(request: JobRequest) {
-    const stages =
-      request.track.sourceKind === "youtube"
-        ? ["download", "convert", ...(request.stem === "original" ? [] : ["separate"]), "export"]
-        : ["convert", ...(request.stem === "original" ? [] : ["separate"]), "export"];
+    const hasStems = request.selection.some((id) => id !== "original");
+    const stages = [
+      ...(request.track.sourceKind === "youtube" && !request.track.sourcePath ? ["download"] : []),
+      "convert",
+      ...(hasStems ? ["separate"] : []),
+      "export",
+    ];
     let seq = 0;
     this.emit({ type: "job_started", jobId: request.jobId, seq: ++seq });
     for (let index = 0; index < stages.length; index++) {
@@ -78,7 +80,7 @@ export class MockBridge implements DesktopBridge {
       type: "job_completed",
       jobId: request.jobId,
       seq: ++seq,
-      outputs: buildOutputs(request.track, request.stem, request.export.format),
+      outputs: buildOutputs(request.track, request.selection, request.export.format),
     });
   }
   async cancelJob(jobId: string) {

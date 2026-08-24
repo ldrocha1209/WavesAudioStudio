@@ -1,4 +1,4 @@
-import type { AppSettings, ExportSettings, OutputFile, StemId, Track } from "../types";
+import type { AppSettings, ExportSettings, OutputFile, OutputId, Track } from "../types";
 
 export interface JobProgressEvent {
   type: "job_started" | "job_progress" | "job_completed" | "job_cancelled" | "job_failed";
@@ -14,7 +14,7 @@ export interface JobProgressEvent {
 export interface JobRequest {
   jobId: string;
   track: Track;
-  stem: StemId;
+  selection: OutputId[];
   export: ExportSettings;
   devicePolicy: AppSettings["hardwareAcceleration"];
 }

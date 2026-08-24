@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import argparse
-import tempfile
-from pathlib import Path
 
-from waves_engine.downloader import download_audio, inspect_url
+from waves_engine.downloader import cached_preview, inspect_url, prepare_preview
 
 
 def main() -> None:
@@ -12,9 +10,10 @@ def main() -> None:
     parser.add_argument("url")
     args = parser.parse_args()
     metadata = inspect_url(args.url)
-    with tempfile.TemporaryDirectory(prefix="waves-youtube-smoke-") as directory:
-        output = download_audio(args.url, Path(directory), lambda: False, lambda _value: None)
-        print(f"Downloaded {metadata['title']!r}: {output.stat().st_size} bytes")
+    output = prepare_preview(args.url, str(metadata["id"]))
+    if cached_preview(str(metadata["id"])) != output:
+        raise SystemExit("preview cache lookup did not return the downloaded audio")
+    print(f"Prepared playable preview for {metadata['title']!r}: {output.stat().st_size} bytes")
 
 
 if __name__ == "__main__":

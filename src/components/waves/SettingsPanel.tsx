@@ -1,4 +1,5 @@
-import { FORMATS, MOCK_FOLDERS, qualitiesFor } from "@/lib/waves/mock";
+import { useEffect, useState } from "react";
+import { FORMATS, qualitiesFor } from "@/lib/waves/mock";
 import type { AppSettings } from "@/lib/waves/types";
 import type { EngineProofStatus } from "@/lib/waves/useEngineProof";
 import { cn } from "@/lib/utils";
@@ -17,26 +18,41 @@ export function SettingsPanel({
   open,
   settings,
   onChange,
+  onChooseOutputFolder,
   onClose,
   engineProofStatus,
-  native,
 }: {
   open: boolean;
   settings: AppSettings;
   onChange: (settings: AppSettings) => void;
+  onChooseOutputFolder: () => Promise<void>;
   onClose: () => void;
   engineProofStatus: EngineProofStatus;
-  native: boolean;
 }) {
+  const [choosingFolder, setChoosingFolder] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose, open]);
+
   if (!open) return null;
 
   return (
     <div
       className="animate-soft-fade fixed inset-0 z-40 flex justify-end bg-[color-mix(in_oklab,var(--shadow-grey)_72%,transparent)]"
-      onClick={onClose}
+      onPointerDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
     >
       <aside
-        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Settings"
         className="scrollarea animate-rise h-full w-[440px] bg-[var(--surface-1)] px-9 py-8 shadow-[var(--glow-strong)]"
       >
         <div className="flex items-center justify-between">
@@ -54,17 +70,13 @@ export function SettingsPanel({
             <div className="flex items-center gap-3">
               <span className="font-mono text-xs text-[var(--grey)]">{settings.outputFolder}</span>
               <GhostButton
-                disabled={native}
-                title={native ? "Choose a destination from the export screen" : undefined}
+                disabled={choosingFolder}
                 onClick={() => {
-                  const next =
-                    MOCK_FOLDERS[
-                      (MOCK_FOLDERS.indexOf(settings.outputFolder) + 1) % MOCK_FOLDERS.length
-                    ]!;
-                  onChange({ ...settings, outputFolder: next });
+                  setChoosingFolder(true);
+                  void onChooseOutputFolder().finally(() => setChoosingFolder(false));
                 }}
               >
-                {native ? "Set per export" : "Change"}
+                {choosingFolder ? "Choosing…" : "Change"}
               </GhostButton>
             </div>
           </Row>
@@ -98,18 +110,11 @@ export function SettingsPanel({
               onChange={(hardwareAcceleration) => onChange({ ...settings, hardwareAcceleration })}
             />
           </Row>
-          <Row label="Appearance">
-            <Segmented
-              options={["Shadow", "Shadow (contrast)"] as const}
-              value={settings.appearance}
-              onChange={(appearance) => onChange({ ...settings, appearance })}
-            />
-          </Row>
         </div>
 
         <div className={cn("mt-10 rounded-md bg-[var(--surface-2)]/60 px-5 py-5")}>
           <Label>About</Label>
-          <p className="mt-4 text-sm text-[var(--platinum)]/85">Waves 1.0.0 — local build</p>
+          <p className="mt-4 text-sm text-[var(--platinum)]/85">Waves 1.0.1 — local build</p>
           <p className="mt-1.5 font-mono text-[11px] leading-relaxed text-[var(--grey)]">
             Downloads, conversions, and stem separation run locally. YouTube access requires an
             internet connection.

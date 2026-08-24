@@ -235,7 +235,7 @@ The official Demucs documentation states that `--two-stems=vocals` still perform
 
 - Run one four-source `htdemucs` inference for any non-Original request.
 - For Vocals, Drums, Bass, or Other, export only the requested result but expect roughly full inference cost.
-- For All Stems, export the four native results.
+- For All 5 Stems, export the four native results plus the derived Instrumental result from the same inference.
 - For Instrumental, sum drums + bass + other from the same inference in float precision, then encode once. This is equivalent in concept to Demucs accompaniment/two-stem behavior while keeping one tested processing path.
 - Do not run a second two-stem pass after a four-stem pass.
 

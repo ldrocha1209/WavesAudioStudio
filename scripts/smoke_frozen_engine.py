@@ -21,9 +21,10 @@ def main() -> None:
         ready = json.loads(process.stdout.readline())
         if ready.get("type") != "engine_ready":
             raise RuntimeError(f"Engine did not become ready: {ready}")
-        if ready.get("engineVersion") != "1.0.0":
+        if ready.get("engineVersion") != "1.0.1":
             raise RuntimeError(f"Unexpected frozen engine version: {ready.get('engineVersion')}")
-        request = {"protocol": 1, "type": "start_job", "requestId": "smoke-start", "payload": {"jobId": "frozen-smoke", "track": {"id": "fixture", "title": "Frozen Smoke", "artist": "Waves", "duration": 3, "source": "fixture", "sourceKind": "file", "sourcePath": str(source), "peaks": [0.5]}, "stem": "instrumental", "export": {"format": "WAV", "quality": "Highest", "location": destination}, "devicePolicy": "CPU only"}}
+        requested = ["original", "vocals", "instrumental", "drums", "bass", "other"]
+        request = {"protocol": 1, "type": "start_job", "requestId": "smoke-start", "payload": {"jobId": "frozen-smoke", "track": {"id": "fixture", "title": "Frozen Smoke", "artist": "Waves", "duration": 3, "source": "fixture", "sourceKind": "file", "sourcePath": str(source), "peaks": [0.5]}, "selection": requested, "export": {"format": "WAV", "quality": "Highest", "location": destination}, "devicePolicy": "CPU only"}}
         process.stdin.write(json.dumps(request, separators=(",", ":")) + "\n")
         process.stdin.flush()
         deadline = time.monotonic() + 240
@@ -37,12 +38,12 @@ def main() -> None:
             diagnostics = process.stderr.read() if process.poll() is not None and process.stderr else ""
             raise RuntimeError(f"Frozen job failed: {terminal}; {diagnostics}")
         outputs = terminal.get("outputs")
-        if not isinstance(outputs, list) or len(outputs) != 1 or not Path(str(outputs[0]["path"])).is_file():
+        if not isinstance(outputs, list) or [output.get("id") for output in outputs] != requested or not all(Path(str(output["path"])).is_file() for output in outputs):
             raise RuntimeError(f"Frozen job returned invalid outputs: {outputs}")
         process.stdin.write('{"protocol":1,"type":"shutdown","requestId":"smoke-stop"}\n')
         process.stdin.flush()
         process.wait(timeout=15)
-        print(f"Frozen engine separation passed: {outputs[0]['filename']}")
+        print("Frozen engine multi-output separation passed: " + ", ".join(str(output["label"]) for output in outputs))
 
 
 if __name__ == "__main__":

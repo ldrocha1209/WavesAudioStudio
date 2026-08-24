@@ -1,6 +1,6 @@
 import artworkLocal from "@/assets/artwork-local.jpg";
 import artworkYoutube from "@/assets/artwork-youtube.jpg";
-import type { AudioFormat, OutputFile, Quality, StemId, Track } from "./types";
+import type { AudioFormat, OutputChoiceId, OutputFile, OutputId, Quality, Track } from "./types";
 
 /** Deterministic pseudo-random peak generator so waveforms stay stable across renders. */
 export function generatePeaks(seed: number, count = 220): number[] {
@@ -45,14 +45,14 @@ export const MOCK_YOUTUBE_TRACK: Omit<Track, "source"> = {
   peaks: generatePeaks(451),
 };
 
-export const STEM_OPTIONS: { id: StemId; label: string; hint: string }[] = [
+export const STEM_OPTIONS: { id: OutputChoiceId; label: string; hint: string }[] = [
   { id: "original", label: "Original", hint: "Full mix, no separation" },
   { id: "vocals", label: "Vocals", hint: "Lead and backing voice" },
   { id: "instrumental", label: "Instrumental", hint: "Everything but vocals" },
   { id: "drums", label: "Drums", hint: "Kit and percussion" },
   { id: "bass", label: "Bass", hint: "Low end" },
   { id: "other", label: "Other", hint: "Keys, guitars, synths" },
-  { id: "all", label: "All Stems", hint: "Four separated files" },
+  { id: "all", label: "All 5 Stems", hint: "Every separated file" },
 ];
 
 export const FORMATS: AudioFormat[] = ["WAV", "MP3", "FLAC"];
@@ -70,7 +70,11 @@ export const MOCK_FOLDERS = [
 
 const EXT: Record<AudioFormat, string> = { WAV: "wav", MP3: "mp3", FLAC: "flac" };
 
-export function buildOutputs(track: Track, stem: StemId, format: AudioFormat): OutputFile[] {
+export function buildOutputs(
+  track: Track,
+  selection: OutputId[],
+  format: AudioFormat,
+): OutputFile[] {
   const base = track.title.replace(/[^\w\s-]/g, "").trim();
   const ext = EXT[format];
   const size = (factor: number) => {
@@ -86,16 +90,19 @@ export function buildOutputs(track: Track, stem: StemId, format: AudioFormat): O
     peaks: generatePeaks(seed),
   });
 
-  if (stem === "all") {
-    return [
-      make("vocals", "Vocals", 11, 0.9),
-      make("drums", "Drums", 23, 0.85),
-      make("bass", "Bass", 37, 0.8),
-      make("other", "Other", 53, 0.95),
-    ];
-  }
-  const label = STEM_OPTIONS.find((o) => o.id === stem)?.label ?? "Original";
-  return [make(stem, label, 71)];
+  const seeds: Record<OutputId, [number, number]> = {
+    original: [71, 1],
+    vocals: [11, 0.9],
+    instrumental: [17, 0.95],
+    drums: [23, 0.85],
+    bass: [37, 0.8],
+    other: [53, 0.95],
+  };
+  return selection.map((id) => {
+    const label = STEM_OPTIONS.find((option) => option.id === id)?.label ?? "Original";
+    const [seed, factor] = seeds[id];
+    return make(id, label, seed, factor);
+  });
 }
 
 export function formatTime(seconds: number): string {

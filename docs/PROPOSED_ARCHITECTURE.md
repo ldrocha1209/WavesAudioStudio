@@ -256,7 +256,7 @@ Persist a small versioned JSON/TOML record atomically through Rust:
 - default output directory grant/path;
 - default export format and MP3 bitrate;
 - hardware mode (`automatic`, `cpu`, and advanced device override when supported);
-- appearance/accessibility choices;
+- accessibility choices;
 - cleanup retention and optional model-cache behavior if later exposed.
 
 Validate on read, migrate by schema version, and fall back to safe defaults if corrupt. Do not store secrets or analytics identifiers. On macOS, if sandboxing is later enabled, persist security-scoped bookmark data rather than assuming a path remains authorized.
@@ -432,7 +432,7 @@ Preview only inspected source/output records. Prefer the WebView's audio element
 - collision allocation and atomic group publishing.
 - workspace manifest and cleanup under success/failure/cancel/crash recovery.
 - model source mapping, mono/stereo handling, instrumental summing, and device selection with mocked Torch.
-- job pipeline planning: Original never loads Demucs; local skips download; All Stems outputs four files.
+- job pipeline planning: Original never loads Demucs when selected alone; local skips download; All 5 Stems outputs four native files plus derived Instrumental.
 - error taxonomy and redaction.
 
 ### Rust unit/integration tests

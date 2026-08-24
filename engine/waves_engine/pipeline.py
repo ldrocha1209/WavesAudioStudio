@@ -8,12 +8,13 @@ import uuid
 from pathlib import Path
 from typing import Any, Callable
 
-from .downloader import download_audio
+from .downloader import cached_preview, download_audio
 from .errors import WavesEngineError
 from .media import resolve_tool
 from .separation import separate_audio
 
 Progress = Callable[[str, float, float], None]
+OUTPUT_ORDER = ("original", "vocals", "instrumental", "drums", "bass", "other")
 
 
 def safe_name(value: str) -> str:
@@ -89,34 +90,54 @@ def export_audio(
                 process.stderr.close()
 
 
+def _selection(context: dict[str, Any]) -> list[str]:
+    raw = context.get("selection")
+    if not isinstance(raw, list) or not raw or any(not isinstance(item, str) or item not in OUTPUT_ORDER for item in raw):
+        raise WavesEngineError("OUTPUT_SELECTION_INVALID")
+    if len(set(raw)) != len(raw):
+        raise WavesEngineError("OUTPUT_SELECTION_INVALID")
+    return [name for name in OUTPUT_ORDER if name in raw]
+
+
 def run_pipeline(context: dict[str, Any], workspace: Path, cancelled: Callable[[], bool], emit: Progress) -> list[dict[str, Any]]:
     track = context["track"]
     export = context["export"]
-    stem = context["stem"]
+    selection = _selection(context)
+    requested_stems = [name for name in selection if name != "original"]
     source_kind = track.get("sourceKind")
     if source_kind == "youtube":
-        download_weight = 0.2 if stem != "original" else 1 / 3
-        source = download_audio(str(track.get("sourceUrl") or track.get("source", "").removeprefix("YouTube · ")), workspace, cancelled, lambda value: emit("download", value, value * download_weight))
+        source = cached_preview(str(track.get("id") or ""))
+        download_weight = 0.0 if source else (0.2 if requested_stems else 1 / 3)
+        if source is None:
+            source = download_audio(str(track.get("sourceUrl") or track.get("source", "").removeprefix("YouTube · ")), workspace, cancelled, lambda value: emit("download", value, value * download_weight))
     elif source_kind == "file":
         download_weight = 0.0
         source = Path(str(track.get("sourcePath") or track.get("path") or "")).resolve(strict=True)
     else:
         raise WavesEngineError("SOURCE_INVALID")
-    if stem == "original":
+    destination = Path(str(export["location"]))
+    labels = {"vocals": "Vocals", "instrumental": "Instrumental", "drums": "Drums", "bass": "Bass", "other": "Other"}
+    outputs: list[dict[str, Any]] = []
+
+    if not requested_stems:
         conversion_weight = 2 / 3 if source_kind == "youtube" else 0.9
-        output = export_audio(source, Path(str(export["location"])), str(track["title"]), str(export["format"]), str(export["quality"]), float(track["duration"]), cancelled, lambda value: emit("convert", value, download_weight + value * conversion_weight))
+        output = export_audio(source, destination, str(track["title"]), str(export["format"]), str(export["quality"]), float(track["duration"]), cancelled, lambda value: emit("convert", value, download_weight + value * conversion_weight))
         emit("export", 1.0, 1.0)
         size = output.stat().st_size
         return [{"id": "original", "label": "Original", "filename": output.name, "size": f"{size / 1024**2:.1f} MB", "path": os.fspath(output), "peaks": track.get("peaks") or [0.06] * 220}]
 
-    convert_end = download_weight + 0.05
-    emit("convert", 1.0, convert_end)
-    separated, _device = separate_audio(source, workspace, str(context.get("devicePolicy") or "Automatic"), cancelled, lambda value: emit("separate", value, convert_end + value * (0.75 - download_weight)))
-    requested = ["vocals", "drums", "bass", "other"] if stem == "all" else [stem]
-    labels = {"vocals": "Vocals", "instrumental": "Instrumental", "drums": "Drums", "bass": "Bass", "other": "Other"}
-    outputs: list[dict[str, Any]] = []
-    for index, name in enumerate(requested):
-        output = export_audio(separated[name], Path(str(export["location"])), f"{track['title']} — {labels[name]}", str(export["format"]), str(export["quality"]), float(track["duration"]), cancelled, lambda value, index=index: emit("export", (index + value) / len(requested), 0.8 + 0.2 * (index + value) / len(requested)))
+    convert_end = download_weight + (0.12 if "original" in selection else 0.05)
+    if "original" in selection:
+        original = export_audio(source, destination, str(track["title"]), str(export["format"]), str(export["quality"]), float(track["duration"]), cancelled, lambda value: emit("convert", value, download_weight + value * (convert_end - download_weight)))
+        size = original.stat().st_size
+        outputs.append({"id": "original", "label": "Original", "filename": original.name, "size": f"{size / 1024**2:.1f} MB", "path": os.fspath(original), "peaks": track.get("peaks") or [0.06] * 220})
+    else:
+        emit("convert", 1.0, convert_end)
+
+    separation_end = 0.78
+    separated, _device = separate_audio(source, workspace, str(context.get("devicePolicy") or "Automatic"), cancelled, lambda value: emit("separate", value, convert_end + value * (separation_end - convert_end)))
+    for index, name in enumerate(requested_stems):
+        output = export_audio(separated[name], destination, f"{track['title']} — {labels[name]}", str(export["format"]), str(export["quality"]), float(track["duration"]), cancelled, lambda value, index=index: emit("export", (index + value) / len(requested_stems), separation_end + (1 - separation_end) * (index + value) / len(requested_stems)))
         size = output.stat().st_size
         outputs.append({"id": name, "label": labels[name], "filename": output.name, "size": f"{size / 1024**2:.1f} MB", "path": os.fspath(output), "peaks": track.get("peaks") or [0.06] * 220})
     return outputs

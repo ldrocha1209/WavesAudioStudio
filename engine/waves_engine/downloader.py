@@ -107,6 +107,21 @@ def safe_thumbnail_id(value: str) -> str:
     return "".join(character for character in value if character.isalnum() or character in "_-")[:64] or "youtube"
 
 
+def cached_preview(video_id: str) -> Path | None:
+    directory = Path(tempfile.gettempdir(), "waves-audio-previews", safe_thumbnail_id(video_id))
+    candidates = [path for path in directory.glob("source.*") if path.suffix not in {".part", ".ytdl"} and path.is_file()]
+    return candidates[0] if len(candidates) == 1 else None
+
+
+def prepare_preview(raw_url: str, video_id: str) -> Path:
+    existing = cached_preview(video_id)
+    if existing:
+        return existing
+    directory = Path(tempfile.gettempdir(), "waves-audio-previews", safe_thumbnail_id(video_id))
+    directory.mkdir(mode=0o700, parents=True, exist_ok=True)
+    return download_audio(raw_url, directory, lambda: False, lambda _value: None)
+
+
 def download_audio(
     raw_url: str,
     workspace: Path,

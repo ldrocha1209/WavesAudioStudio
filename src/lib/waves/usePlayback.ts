@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 let activeAudio: HTMLAudioElement | null = null;
 
 export function usePlayback(duration: number, path?: string) {
+  const native = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
@@ -12,7 +13,7 @@ export function usePlayback(duration: number, path?: string) {
   useEffect(() => {
     setPlaying(false);
     setTime(0);
-    if (!path || !("__TAURI_INTERNALS__" in window)) {
+    if (!path || !native) {
       setAudio(null);
       return;
     }
@@ -34,7 +35,7 @@ export function usePlayback(duration: number, path?: string) {
         if (activeAudio === element) activeAudio = null;
       }
     };
-  }, [duration, path]);
+  }, [duration, native, path]);
 
   useEffect(() => {
     if (audio || !playing) return;
@@ -68,7 +69,7 @@ export function usePlayback(duration: number, path?: string) {
       }
       return;
     }
-    setPlaying((current) => (time >= duration ? (setTime(0), true) : !current));
+    if (!native) setPlaying((current) => (time >= duration ? (setTime(0), true) : !current));
   };
 
   const seek = (position: number) => {

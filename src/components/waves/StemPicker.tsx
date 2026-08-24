@@ -1,15 +1,15 @@
 import { STEM_OPTIONS } from "@/lib/waves/mock";
-import type { StemId } from "@/lib/waves/types";
+import type { OutputChoiceId, OutputId } from "@/lib/waves/types";
 import { cn } from "@/lib/utils";
 import { Label } from "./primitives";
 
 export function StemPicker({
-  value,
-  onChange,
+  selection,
+  onToggle,
   disabled,
 }: {
-  value: StemId;
-  onChange: (stem: StemId) => void;
+  selection: OutputId[];
+  onToggle: (output: OutputChoiceId) => void;
   disabled?: boolean | undefined;
 }) {
   return (
@@ -17,13 +17,22 @@ export function StemPicker({
       <Label>What do you want from this track</Label>
       <div className="mt-5 grid grid-cols-4 gap-2">
         {STEM_OPTIONS.map((option) => {
-          const selected = option.id === value;
+          const allSelected = ["vocals", "instrumental", "drums", "bass", "other"].every((id) =>
+            selection.includes(id as OutputId),
+          );
+          const selected =
+            option.id === "all"
+              ? allSelected
+              : option.id === "original"
+                ? selection.includes(option.id)
+                : !allSelected && selection.includes(option.id);
           return (
             <button
               key={option.id}
               type="button"
               disabled={disabled}
-              onClick={() => onChange(option.id)}
+              aria-pressed={selected}
+              onClick={() => onToggle(option.id)}
               className={cn(
                 "group relative overflow-hidden rounded-md px-4 py-3.5 text-left transition-all duration-200",
                 "disabled:cursor-not-allowed disabled:opacity-40",
