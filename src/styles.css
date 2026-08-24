@@ -53,9 +53,11 @@
   --hairline: color-mix(in oklab, var(--platinum) 9%, transparent);
 
   /* illumination */
-  --glow-soft: 0 0 0 1px color-mix(in oklab, var(--platinum) 8%, transparent),
+  --glow-soft:
+    0 0 0 1px color-mix(in oklab, var(--platinum) 8%, transparent),
     0 0 24px -6px color-mix(in oklab, var(--platinum) 18%, transparent);
-  --glow-strong: 0 0 0 1px color-mix(in oklab, var(--platinum) 22%, transparent),
+  --glow-strong:
+    0 0 0 1px color-mix(in oklab, var(--platinum) 22%, transparent),
     0 0 42px -8px color-mix(in oklab, var(--platinum) 34%, transparent);
 
   --background: var(--shadow-grey);

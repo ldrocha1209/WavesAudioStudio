@@ -37,4 +37,4 @@ Date: 2026-08-23
 - Real export and atomic destination publication: Phase 4.
 - Real YouTube metadata/download: Phase 5.
 - Real Demucs separation: Phase 6.
-- Path grants and final error/recovery hardening remain explicit Phase 8 security work before completion.
+- Path grants and final error/recovery hardening were completed in Phase 8; see `PHASE_6_9_RESULTS.md`.

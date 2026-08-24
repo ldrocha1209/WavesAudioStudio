@@ -11,6 +11,7 @@ from typing import Any, Callable
 from .downloader import download_audio
 from .errors import WavesEngineError
 from .media import resolve_tool
+from .separation import separate_audio
 
 Progress = Callable[[str, float, float], None]
 
@@ -92,19 +93,30 @@ def run_pipeline(context: dict[str, Any], workspace: Path, cancelled: Callable[[
     track = context["track"]
     export = context["export"]
     stem = context["stem"]
-    if stem != "original":
-        raise WavesEngineError("SEPARATION_NOT_READY")
     source_kind = track.get("sourceKind")
     if source_kind == "youtube":
-        offset = 1 / 3
-        source = download_audio(str(track.get("sourceUrl") or track.get("source", "").removeprefix("YouTube · ")), workspace, cancelled, lambda value: emit("download", value, value / 3))
+        download_weight = 0.2 if stem != "original" else 1 / 3
+        source = download_audio(str(track.get("sourceUrl") or track.get("source", "").removeprefix("YouTube · ")), workspace, cancelled, lambda value: emit("download", value, value * download_weight))
     elif source_kind == "file":
-        offset = 0.0
+        download_weight = 0.0
         source = Path(str(track.get("sourcePath") or track.get("path") or "")).resolve(strict=True)
     else:
         raise WavesEngineError("SOURCE_INVALID")
-    conversion_weight = 2 / 3 if source_kind == "youtube" else 0.9
-    output = export_audio(source, Path(str(export["location"])), str(track["title"]), str(export["format"]), str(export["quality"]), float(track["duration"]), cancelled, lambda value: emit("convert", value, offset + value * conversion_weight))
-    emit("export", 1.0, 1.0)
-    size = output.stat().st_size
-    return [{"id": "original", "label": "Original", "filename": output.name, "size": f"{size / 1024**2:.1f} MB", "path": os.fspath(output), "peaks": track.get("peaks") or [0.06] * 220}]
+    if stem == "original":
+        conversion_weight = 2 / 3 if source_kind == "youtube" else 0.9
+        output = export_audio(source, Path(str(export["location"])), str(track["title"]), str(export["format"]), str(export["quality"]), float(track["duration"]), cancelled, lambda value: emit("convert", value, download_weight + value * conversion_weight))
+        emit("export", 1.0, 1.0)
+        size = output.stat().st_size
+        return [{"id": "original", "label": "Original", "filename": output.name, "size": f"{size / 1024**2:.1f} MB", "path": os.fspath(output), "peaks": track.get("peaks") or [0.06] * 220}]
+
+    convert_end = download_weight + 0.05
+    emit("convert", 1.0, convert_end)
+    separated, _device = separate_audio(source, workspace, str(context.get("devicePolicy") or "Automatic"), cancelled, lambda value: emit("separate", value, convert_end + value * (0.75 - download_weight)))
+    requested = ["vocals", "drums", "bass", "other"] if stem == "all" else [stem]
+    labels = {"vocals": "Vocals", "instrumental": "Instrumental", "drums": "Drums", "bass": "Bass", "other": "Other"}
+    outputs: list[dict[str, Any]] = []
+    for index, name in enumerate(requested):
+        output = export_audio(separated[name], Path(str(export["location"])), f"{track['title']} — {labels[name]}", str(export["format"]), str(export["quality"]), float(track["duration"]), cancelled, lambda value, index=index: emit("export", (index + value) / len(requested), 0.8 + 0.2 * (index + value) / len(requested)))
+        size = output.stat().st_size
+        outputs.append({"id": name, "label": labels[name], "filename": output.name, "size": f"{size / 1024**2:.1f} MB", "path": os.fspath(output), "peaks": track.get("peaks") or [0.06] * 220})
+    return outputs

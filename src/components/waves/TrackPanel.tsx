@@ -6,7 +6,7 @@ import { TransportButton } from "./Transport";
 import { Waveform } from "./Waveform";
 
 export function TrackPanel({ track, scan }: { track: Track; scan?: number | undefined }) {
-  const player = usePlayback(track.duration);
+  const player = usePlayback(track.duration, track.sourcePath);
 
   return (
     <section className="animate-rise">

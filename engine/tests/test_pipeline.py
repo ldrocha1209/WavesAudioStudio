@@ -5,6 +5,7 @@ import tempfile
 import unittest
 import wave
 from pathlib import Path
+from unittest.mock import patch
 
 from waves_engine.pipeline import run_pipeline, safe_name
 
@@ -35,6 +36,25 @@ class ExportPipelineTests(unittest.TestCase):
 
     def test_filename_sanitization(self) -> None:
         self.assertEqual(safe_name("  ../A:B\\C  "), "A B C")
+
+    def test_all_stems_uses_one_inference_and_publishes_four_native_stems(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_directory:
+            directory = Path(raw_directory)
+            source = self.make_source(directory)
+            stems = {name: source for name in ("vocals", "instrumental", "drums", "bass", "other")}
+            exported: list[Path] = []
+
+            def fake_export(*_args: object, **_kwargs: object) -> Path:
+                path = directory / f"output-{len(exported)}.wav"
+                path.write_bytes(b"fixture")
+                exported.append(path)
+                return path
+
+            context = {"track": {"sourceKind": "file", "sourcePath": str(source), "title": "Track", "duration": 1, "peaks": [0.5]}, "stem": "all", "devicePolicy": "CPU only", "export": {"location": str(directory), "format": "WAV", "quality": "Highest"}}
+            with patch("waves_engine.pipeline.separate_audio", return_value=(stems, "cpu")) as separate, patch("waves_engine.pipeline.export_audio", side_effect=fake_export):
+                outputs = run_pipeline(context, directory, lambda: False, lambda *_args: None)
+            separate.assert_called_once()
+            self.assertEqual([output["id"] for output in outputs], ["vocals", "drums", "bass", "other"])
 
 
 if __name__ == "__main__":

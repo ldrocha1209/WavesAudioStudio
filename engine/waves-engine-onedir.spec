@@ -1,7 +1,7 @@
 from PyInstaller.utils.hooks import collect_all
 
 datas, binaries, hiddenimports = [], [], []
-for package in ("yt_dlp",):
+for package in ("yt_dlp", "torch", "torchaudio", "demucs", "soundfile"):
     package_datas, package_binaries, package_hidden = collect_all(package)
     datas += package_datas
     binaries += package_binaries
@@ -13,7 +13,7 @@ analysis = Analysis(
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,
-    excludes=["torch", "torchaudio", "demucs"],
+    excludes=[],
     noarchive=False,
 )
 pyz = PYZ(analysis.pure)

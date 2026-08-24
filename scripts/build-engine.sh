@@ -32,5 +32,11 @@ for tool in ffmpeg ffprobe node; do
   chmod 755 "$tools_dir/$tool"
 done
 
+if [[ -d "$engine_dir/.model-cache" ]]; then
+  cp -R "$engine_dir/.model-cache" "$engine_dir/dist/waves-engine-onedir/models"
+else
+  echo "No local Demucs model cache found; the first separation will download the pinned model." >&2
+fi
+
 "$engine_binary" <<<'{"protocol":1,"type":"shutdown","requestId":"build-check"}' >/dev/null
 echo "Frozen Waves engine is ready at $engine_dir/dist/waves-engine-onedir"

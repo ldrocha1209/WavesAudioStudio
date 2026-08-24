@@ -16,12 +16,14 @@ export interface JobRequest {
   track: Track;
   stem: StemId;
   export: ExportSettings;
+  devicePolicy: AppSettings["hardwareAcceleration"];
 }
 
 export interface DesktopBridge {
   readonly native: boolean;
   chooseSource(): Promise<string | null>;
-  chooseDestination(): Promise<string | null>;
+  chooseDestination(): Promise<{ path: string; grantId: string } | null>;
+  registerDroppedSource(path: string): Promise<string>;
   inspectFile(path: string): Promise<Track>;
   inspectUrl(url: string): Promise<Track>;
   startJob(request: JobRequest): Promise<void>;

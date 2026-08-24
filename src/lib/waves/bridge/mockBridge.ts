@@ -30,6 +30,9 @@ export class MockBridge implements DesktopBridge {
   async chooseDestination() {
     return null;
   }
+  async registerDroppedSource(path: string) {
+    return path;
+  }
   async inspectFile(path: string): Promise<Track> {
     if (!isSupportedFile(path)) throw new Error("SOURCE_UNSUPPORTED");
     return {

@@ -11,6 +11,7 @@ export interface Track {
   artwork: string;
   peaks: number[];
   sourcePath?: string;
+  sourceGrant?: string;
   sourceUrl?: string;
 }
 
@@ -23,6 +24,7 @@ export interface ExportSettings {
   format: AudioFormat;
   quality: Quality;
   location: string;
+  destinationGrant?: string;
 }
 
 export type StageId = "download" | "convert" | "separate" | "export";

@@ -1,3 +1,3 @@
 fn main() {
-    waves_desktop_poc_lib::run();
+    waves_desktop_lib::run();
 }

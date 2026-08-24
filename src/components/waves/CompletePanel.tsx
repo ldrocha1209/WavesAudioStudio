@@ -17,7 +17,7 @@ function OutputRow({
   active: boolean;
   onActivate: () => void;
 }) {
-  const player = usePlayback(duration);
+  const player = usePlayback(duration, output.path);
   const playing = active && player.playing;
 
   return (

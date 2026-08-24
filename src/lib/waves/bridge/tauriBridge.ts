@@ -1,5 +1,6 @@
 import artworkLocal from "@/assets/artwork-local.jpg";
 import artworkYoutube from "@/assets/artwork-youtube.jpg";
+import { generatePeaks } from "../mock";
 import type { AppSettings, Track } from "../types";
 import type { DesktopBridge, JobProgressEvent, JobRequest } from "./types";
 
@@ -73,32 +74,44 @@ export class TauriBridge implements DesktopBridge {
   }
 
   async chooseSource() {
-    const { open } = await import("@tauri-apps/plugin-dialog");
-    const result = await open({
-      multiple: false,
-      directory: false,
-      filters: [{ name: "Audio", extensions: ["mp3", "wav", "flac", "aiff", "aif", "m4a"] }],
-    });
-    return typeof result === "string" ? result : null;
+    const { invoke } = await import("@tauri-apps/api/core");
+    const result = await invoke<{ grantId: string } | null>("choose_source");
+    return result?.grantId ?? null;
   }
   async chooseDestination() {
-    const { open } = await import("@tauri-apps/plugin-dialog");
-    const result = await open({ directory: true, multiple: false });
-    return typeof result === "string" ? result : null;
+    const { invoke } = await import("@tauri-apps/api/core");
+    const result = await invoke<{ grantId: string; displayPath: string } | null>(
+      "choose_destination",
+    );
+    return result ? { grantId: result.grantId, path: result.displayPath } : null;
   }
-  async inspectFile(path: string): Promise<Track> {
-    const frame = await this.request("inspect_file", { path });
+  async registerDroppedSource(path: string) {
+    const { invoke } = await import("@tauri-apps/api/core");
+    const result = await invoke<{ grantId: string }>("register_dropped_source", { path });
+    return result.grantId;
+  }
+  async inspectFile(grantId: string): Promise<Track> {
+    const frame = await this.request("inspect_file", { grantId });
     const track = frame["track"] as Omit<Track, "artwork"> & { path?: string };
     return {
       ...track,
-      ...(track.path ? { sourcePath: track.path } : {}),
+      sourceGrant: grantId,
       artwork: artworkLocal,
     };
   }
   async inspectUrl(url: string): Promise<Track> {
     const frame = await this.request("inspect_url", { url });
-    const track = frame["track"] as Omit<Track, "artwork">;
-    return { ...track, artwork: artworkYoutube };
+    const track = frame["track"] as Omit<Track, "artwork"> & { thumbnailPath?: string };
+    let artwork = artworkYoutube;
+    if (track.thumbnailPath) {
+      const { convertFileSrc } = await import("@tauri-apps/api/core");
+      artwork = convertFileSrc(track.thumbnailPath);
+    }
+    return {
+      ...track,
+      peaks: track.peaks.length ? track.peaks : generatePeaks(track.id.length * 97),
+      artwork,
+    };
   }
   async startJob(request: JobRequest) {
     await this.request("start_job", request as unknown as Record<string, unknown>);

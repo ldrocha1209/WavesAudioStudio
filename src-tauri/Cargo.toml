@@ -1,14 +1,14 @@
 [package]
-name = "waves-desktop-poc"
-version = "0.0.1"
-description = "Waves Phase 0 desktop architecture proof"
+name = "waves-desktop"
+version = "0.9.0"
+description = "Waves local audio processing studio"
 authors = ["Waves"]
 edition = "2021"
 rust-version = "1.77.2"
 build = "build.rs"
 
 [lib]
-name = "waves_desktop_poc_lib"
+name = "waves_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -17,7 +17,8 @@ tauri-build = { version = "2.4.1", features = [] }
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-tauri = { version = "2.9.5", features = [] }
+libc = "0.2"
+tauri = { version = "2.9.5", features = ["protocol-asset"] }
 tauri-plugin-dialog = "2.4.0"
 tauri-plugin-opener = "2.5.3"
 tauri-plugin-single-instance = "2.3.6"

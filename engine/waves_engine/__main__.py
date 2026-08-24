@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import multiprocessing
 import platform
 import shutil
 import subprocess
@@ -254,6 +255,7 @@ class Engine:
 
 
 def main() -> None:
+    multiprocessing.freeze_support()
     engine = Engine()
     engine.emit(
         {

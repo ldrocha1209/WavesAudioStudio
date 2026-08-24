@@ -183,11 +183,14 @@ export function useWaves() {
           setError("unsupported-file");
           return;
         }
-        void loadFile(event.payload.paths[0]!);
+        void bridge
+          .registerDroppedSource(event.payload.paths[0]!)
+          .then(loadFile)
+          .catch(() => setError("unsupported-file"));
       });
     });
     return () => unlisten?.();
-  }, [bridge.native, loadFile]);
+  }, [bridge, bridge.native, loadFile]);
   const loadUrl = useCallback(
     async (url: string) => {
       setError(null);
@@ -204,7 +207,13 @@ export function useWaves() {
   );
   const process = useCallback(() => {
     if (!track) return;
-    const request: JobRequest = { jobId: crypto.randomUUID(), track, stem, export: exportSettings };
+    const request: JobRequest = {
+      jobId: crypto.randomUUID(),
+      track,
+      stem,
+      export: exportSettings,
+      devicePolicy: settings.hardwareAcceleration,
+    };
     activeRequest.current = request;
     setError(null);
     setStages(buildStages({ sourceKind: track.sourceKind, stem }));
@@ -215,7 +224,7 @@ export function useWaves() {
       setPhase("ready");
       activeRequest.current = null;
     });
-  }, [bridge, exportSettings, stem, track]);
+  }, [bridge, exportSettings, settings.hardwareAcceleration, stem, track]);
   const cancel = useCallback(() => {
     const id = activeRequest.current?.jobId;
     if (id) void bridge.cancelJob(id).catch(() => setError("processing-failed"));
@@ -246,8 +255,13 @@ export function useWaves() {
     [bridge],
   );
   const chooseDestination = useCallback(async () => {
-    const path = await bridge.chooseDestination();
-    if (path) setExportSettings((previous) => ({ ...previous, location: path }));
+    const destination = await bridge.chooseDestination();
+    if (destination)
+      setExportSettings((previous) => ({
+        ...previous,
+        location: destination.path,
+        destinationGrant: destination.grantId,
+      }));
   }, [bridge]);
 
   return {
